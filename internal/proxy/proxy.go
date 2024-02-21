@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/auth"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
@@ -21,7 +20,8 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
 	e.Any("/*", func(c echo.Context) error {
-		fmt.Println("proxy")
+		l.Debug("Proxying request")
+
 		req := c.Request()
 		res := c.Response()
 

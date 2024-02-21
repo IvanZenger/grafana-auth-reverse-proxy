@@ -14,6 +14,7 @@ type Run struct {
 	TokenConfig        `envprefix:"TOKEN_CONFIG_"`
 	Oidc               `envprefix:"OIDC_"`
 	Proxy              `envprefix:"PROXY_"`
+	Grafana            `envprefix:"GRAFANA_"`
 	RedirectGrafanaURL string `env:"REDIRECT_GRAFANA_URL" default:"http://e1-zengeriv-alsu001:8081/"`
 }
 
@@ -42,6 +43,10 @@ type Proxy struct {
 	ProxyTarget string `env:"PROXY_TARGET" default:"http://e1-zengeriv-alsu001:8081/"`
 }
 
+type Grafana struct {
+	OrgAttributePath string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
+}
+
 func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 	cfg := config.Config{
 		CallbackEndpoint:      r.CallbackEndpoint,
@@ -57,6 +62,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		ProxyTarget:           r.ProxyTarget,
 		Port:                  r.Port,
 		AccessTokenCookieName: r.AccessTokenCookieName,
+		OrgAttributePath:      r.OrgAttributePath,
 	}
 
 	e := echo.New()

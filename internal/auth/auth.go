@@ -6,6 +6,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/labstack/echo/v4"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
+	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/grafana"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -88,6 +89,8 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 	}
 
 	ctx.SetCookie(cookie)
+
+	grafana.UpdateUserMapping(rawIDToken, cfg)
 
 	return ctx.Redirect(302, cfg.RedirectGrafanaURL)
 }
