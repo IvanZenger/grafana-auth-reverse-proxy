@@ -15,6 +15,33 @@ builds:
         - CGO_ENABLED=0
 snapshot:
     name_template: '{{ .Version }}-{{ .Env.PROJECT_RELEASE }}'
+dockers:
+  - ids:
+      - grafana-auth-reverse-proxy
+    goos: linux
+    goarch: amd64
+    dockerfile: packaging/docker/Dockerfile
+    image_templates:
+      - '{{ .Env.DOCKER_IMAGE_PREFIX }}{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}-{{ .Env.CAL_VERSION }}'
+      - '{{ .Env.DOCKER_IMAGE_PREFIX }}{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}'
+      - '{{ .Env.DOCKER_IMAGE_PREFIX }}{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}'
+      - '{{ .Env.DOCKER_IMAGE_PREFIX }}{{ .ProjectName }}:{{ .Major }}'
+      - '{{ .Env.DOCKER_IMAGE_PREFIX }}{{ .ProjectName }}:latest'
+    extra_files:
+      - packaging/docker/docker-entrypoint.sh
+    build_flag_templates:
+      - --build-arg=http_proxy
+      - --build-arg=https_proxy
+      - --build-arg=no_proxy
+      - --label=ch.postfinance.go.version={{ .Env.GO_VERSION }}
+      - --label=org.opencontainers.image.created={{ .Date }}
+      - --label=org.opencontainers.image.revision={{ .ShortCommit }}
+      - --label=org.opencontainers.image.source={{ .Env.CI_PROJECT_URL }}
+      - --label=org.opencontainers.image.url={{ .Env.CI_PROJECT_URL }}
+      - --label=org.opencontainers.image.vendor=PostFinance AG
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --pull
+
 publishers:
     - name: artifactory
       cmd: release-helper publish --project-name {{ .ProjectName }} --project-url {{ .Env.CI_PROJECT_URL }} --artifact-path {{ .ArtifactPath }} --arch='{{ .Arch }}'
