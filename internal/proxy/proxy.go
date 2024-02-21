@@ -2,8 +2,8 @@ package proxy
 
 import (
 	"github.com/labstack/echo/v4"
-	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/auth"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
+	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/jwks"
 	"go.uber.org/zap"
 	"net/http"
 	"net/http/httputil"
@@ -36,7 +36,7 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 			return c.Redirect(http.StatusFound, "/auth")
 		}
 
-		username, err := auth.ExtractTokenUsername(cookie.Value, cfg.JwksUrl)
+		username, err := jwks.ExtractTokenUsername(cookie.Value, cfg.JwksUrl)
 		if err != nil {
 			l.Errorw("Failed to extract username from token", "error", err)
 			return echo.NewHTTPError(http.StatusForbidden, "Access denied")

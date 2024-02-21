@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/kong v0.8.1
 	github.com/coreos/go-oidc/v3 v3.9.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/jmespath/go-jmespath v0.4.0
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/postfinance/flash v0.5.1
 	github.com/zbindenren/king v0.3.2

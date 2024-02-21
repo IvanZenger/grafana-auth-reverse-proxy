@@ -1,8 +1,8 @@
 package grafana
 
 import (
-	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/auth"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
+	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/jwks"
 )
 
 func UpdateUserMapping(idToken string, cfg *config.Config) error {
@@ -16,7 +16,7 @@ func UpdateUserMapping(idToken string, cfg *config.Config) error {
 		return err
 	}
 
-	username, err := auth.ExtractTokenUsername(idToken, cfg.JwksUrl)
+	username, err := jwks.ExtractTokenUsername(idToken, cfg.JwksUrl)
 	if err != nil {
 		return err
 	}
