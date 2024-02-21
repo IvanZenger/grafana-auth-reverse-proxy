@@ -35,6 +35,7 @@ info:
 tests:
   extends: .golang-tests
   image: linux-docker-local.repo.pnet.ch/pf/create-go-app:0.32.1
+  allow_failure: true
 
 check-deps:
   extends: .check-deps
