@@ -55,7 +55,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		return oauthAuthRedirect(c, *r)
 	})
 
-	//e.Use(checkAccessToken)
+	e.Use(checkAccessToken)
 
 	url, _ := url.Parse(r.ProxyTarget)
 
@@ -227,8 +227,6 @@ func Callback(ctx echo.Context, r Run) error {
 	oauth2Token, err := oauth2Config.Exchange(c, ctx.Request().URL.Query().Get("code"))
 
 	if err != nil {
-
-		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to exchange token: "+err.Error())
 	}
 
@@ -278,7 +276,6 @@ func oauthAuthRedirect(ctx echo.Context, r Run) error {
 	fmt.Println(r.Issuer)
 
 	provider, err := oidc.NewProvider(c, r.Issuer)
-	fmt.Println(err)
 
 	if err != nil {
 		return err
