@@ -6,12 +6,12 @@ import (
 
 // Cli is the root struct
 type Cli struct {
-	Run Run `cmd:"" help:"Execute specific OpenSearch jobs as defined in the configuration. Use this command to initiate predefined tasks or processes within OpenSearch."`
-	Globals
+	Run     Run `cmd:""`
+	Globals `envprefix:"GLOBALS_"`
 }
 
 // Globals contains global command arguments
 type Globals struct {
-	Debug   bool             `default:"false" env:"OPENSEARCH_CLI_GLOBALS_DEBUG" help:"Set debug log level."`
-	Version king.VersionFlag `env:"GLOBALS_VERSION" help:"Show version information"`
+	Debug   bool             `default:"false" env:"DEBUG" help:"Set debug log level."`
+	Version king.VersionFlag `env:"VERSION" help:"Show version information"`
 }
