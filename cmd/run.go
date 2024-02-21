@@ -39,8 +39,8 @@ type Run struct {
 	Issuer           string   `env:"ISSUER" default:"http://e1-zengeriv-alsu001:8080/realms/master"`
 	Scopes           []string `env:"SCOPES"`
 
-	JwksUrl            string `env:"JWKS_URL" default:"http://e1-zengeriv-alsu001:8080/realms/master/protocol/openid-connect/certs"`
-	RedirectGrafanaURL string `env:"REDIRECT_GRAFANA_URL" default:"/"`
+	JwksUrl            string `env:"JWKS_URL" default:"http://e1-zengeriv-alsu001.pnet.ch:8080/realms/master/protocol/openid-connect/certs"`
+	RedirectGrafanaURL string `env:"REDIRECT_GRAFANA_URL" default:"http://e1-zengeriv-alsu001:8081/"`
 	ProxyTarget        string `env:"PROXY_TARGET" default:"http://e1-zengeriv-alsu001:8081/"`
 }
 
@@ -62,6 +62,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 	proxy := httputil.NewSingleHostReverseProxy(url)
 
 	e.Any("/*", func(c echo.Context) error {
+		fmt.Println("proxy")
 		req := c.Request()
 		res := c.Response()
 
@@ -81,6 +82,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		}
 
 		if username != "" {
+			fmt.Println(username)
 			req.Header.Set("X-WEBAUTH-USER", username)
 		}
 
@@ -99,6 +101,7 @@ func getPemCertFromJWKS(jwksURL string, token *jwt.Token) (string, error) {
 	resp, err := http.Get(jwksURL) //nolint:gosec //The variable jwksURL can't be a constant because its value depends on the deployment environment.
 
 	if err != nil {
+		fmt.Println(err)
 		return cert, err
 	}
 
@@ -133,10 +136,20 @@ func ExtractTokenUsername(tokenString string, jwksUrl string) (string, error) {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		cert, err := getPemCertFromJWKS(jwksUrl, token)
+		/*cert, err := getPemCertFromJWKS(jwksUrl, token)
+
+		if err != nil {
+			fmt.Println(err)
+			return "", err
+		}
+
+		*/
+
+		cert := "-----BEGIN CERTIFICATE-----\nMIICmzCCAYMCBgGNwU5ZrzANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZtYXN0ZXIwHhcNMjQwMjE5MTIxNzMzWhcNMzQwMjE5MTIxOTEzWjARMQ8wDQYDVQQDDAZtYXN0ZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCyjHMvkvvNcZjTLv//zlXIth3tbrH4XeJRzdVEhnLDeFtjZcQ/tph0PdwEHd6zIOWn\nj9M+JL5p78ix4oNm0ZpOZ0/IRzgcFuWmG3FRujb6YJEgNucSvxbjsttR/2mdDudEu09xdXJljxepZoVeHXw/6qRNpfjN4FuBQxsejpthO+3neSZxWqzO/eSpqIJ468g30cj5Ez8lZRTu7d1pN+GtOXLE5vZSOnQrdSEspjLVWKD7Ai0ENHEqzXR7/RvOKc1RN2vRAOvS1UG8n0/ZJQ4GsEgld5pAO0YV5iAXOMzJNnK0NxMsC9Xh\ntTTc5I2vxRdyH1xKclYKeozWjQrRqKRPAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAF/8AJuIvUt6tx47BQJ/eTiOAWOpQJ/rxureISDYEQW/kVLYa/XRdZP3OLgDglmjcuYznPKWYjFSlHu+2BusoxUch3vdgEPHSgUu/0eR3rmk6tq39bspT8DPYNCc5MSFNX62zkIuVnXBBYJFgDNSdnXIUJWyGZrQxcsvf2G/aLtOtQfeSr+z\nCFo0wSIBWnG8N8IacQDNatCucWrnnblSwfRAJNJXs53PIwNCm/LQsnV0aXgU8v2hBvhnF9N+hE2zRZBWc33/11otJt3F27XG8AqX7OS04OYHqzSO54JqmcVoX1X30Zwqsxzw4FEEjMZKTnBxOqkENr6sYuYepvjgKts=\n-----END CERTIFICATE-----\n"
 
 		publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 		if err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
 
@@ -187,6 +200,7 @@ func handleOAuthCallback(c echo.Context) error {
 }
 
 func Callback(ctx echo.Context, r Run) error {
+	fmt.Println("callback")
 	c := context.Background()
 
 	fmt.Println(r.Issuer)
@@ -259,7 +273,6 @@ func Callback(ctx echo.Context, r Run) error {
 		HttpOnly: true,
 		Secure:   true,
 		Path:     "/",
-		MaxAge:   36000,
 	}
 
 	ctx.SetCookie(cookie)
@@ -271,7 +284,7 @@ func Callback(ctx echo.Context, r Run) error {
 }
 
 func oauthAuthRedirect(ctx echo.Context, r Run) error {
-
+	fmt.Println("auth")
 	c := context.Background()
 	fmt.Println(r.Issuer)
 
