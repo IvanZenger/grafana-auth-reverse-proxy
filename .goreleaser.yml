@@ -30,7 +30,6 @@ publishers:
         - ARTIFACTORY_ZIP_URL={{ .Env.ARTIFACTORY_ZIP_URL }}
         - DOCKER_PASSWORD={{ .Env.DOCKER_PASSWORD }}
         - DOCKER_USERNAME={{ .Env.DOCKER_USERNAME }}
-        - SUPPORTED_DEBIAN_RELEASES={{ .Env.SUPPORTED_DEBIAN_RELEASES }}
 before:
     hooks:
         - go generate ./...
