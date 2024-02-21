@@ -1,0 +1,78 @@
+# This file is generated with create-go-app: do not edit.
+---
+variables:
+  GO111MODULE: 'on'
+  CGO_ENABLED: '0'
+  GOPATH: $CI_PROJECT_DIR/.go
+  GOPRIVATE: '*.pnet.ch'
+  GOPROXY: https://repo.pnet.ch/artifactory/api/go/go
+  # GOPROXY: https://proxy.golang.org
+  http_proxy: http://outapplpf.pnet.ch:3128
+  https_proxy: http://outapplpf.pnet.ch:3128
+  no_proxy: localhost,127.0.0.1,.pnet.ch
+
+include:
+  - remote: https://gitlab.pnet.ch/linux/go/create-go-app/-/raw/v0.32.1/.gitlab-ci-include.yml
+
+stages:
+  - pre-test
+  - test
+  - post-test
+  - pre-build
+  - build
+  - post-build
+  - pre-release
+  - release
+  - post-release
+
+info:
+  # temporary fix of regression https://github.com/golang/go/issues/60667
+  variables:
+     GOWORK: 'off'
+  extends: .info
+  image: linux-docker-local.repo.pnet.ch/pf/create-go-app:0.32.1
+
+tests:
+  extends: .golang-tests
+  image: linux-docker-local.repo.pnet.ch/pf/create-go-app:0.32.1
+
+check-deps:
+  extends: .check-deps
+  image: linux-docker-local.repo.pnet.ch/pf/create-go-app:0.32.1
+
+check-goreleaser-config:
+  extends: .check-goreleaser-config
+  image: linux-docker-local.repo.pnet.ch/pf/create-go-app:0.32.1
+
+trivy-fs:
+  extends: .trivy-fs
+
+trivy-conf:
+  extends: .trivy-conf
+
+# Build only when not staging or release
+build:
+  extends: .goreleaser-build
+  image: linux-docker-local.repo.pnet.ch/pf/create-go-app:0.32.1
+
+# build,test and publish to staging
+staging:
+  extends: .goreleaser-staging
+  image: linux-docker-local.repo.pnet.ch/pf/create-go-app:0.32.1
+  variables:
+    DOCKER_IMAGE_PREFIX: ${ARTIFACTORY_DOCKER_URL_STAGING}/
+  only:
+    refs:
+      - branches@zengeriv/grafana-auth-reverse-proxy
+
+
+# build,test and publish to release
+release:
+  extends: .goreleaser-release
+  image: linux-docker-local.repo.pnet.ch/pf/create-go-app:0.32.1
+  variables:
+    DOCKER_IMAGE_PREFIX: ${ARTIFACTORY_DOCKER_URL_RELEASES}/
+  only:
+    refs:
+      - tags@zengeriv/grafana-auth-reverse-proxy
+

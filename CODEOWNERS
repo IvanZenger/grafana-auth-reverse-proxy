@@ -1,0 +1,8 @@
+# Created by create-go-app.
+#
+# For more information visit: https://docs.gitlab.com/ee/user/project/code_owners.html
+# Full example: https://docs.gitlab.com/ee/user/project/code_owners.html#example-codeowners-file
+# Ideally there would be at least two default code owners. Ask for permission before
+# you add someone other than you.
+
+* ivan.zenger.1@postfinance.ch

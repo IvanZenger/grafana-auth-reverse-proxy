@@ -1,0 +1,36 @@
+project_name: grafana-auth-reverse-proxy
+release:
+    disable: "true"
+builds:
+    - id: grafana-auth-reverse-proxy
+      goos:
+        - linux
+      goarch:
+        - amd64
+      main: ./
+      binary: grafana-auth-reverse-proxy
+      flags:
+        - -trimpath
+      env:
+        - CGO_ENABLED=0
+snapshot:
+    name_template: '{{ .Version }}-{{ .Env.PROJECT_RELEASE }}'
+publishers:
+    - name: artifactory
+      cmd: release-helper publish --project-name {{ .ProjectName }} --project-url {{ .Env.CI_PROJECT_URL }} --artifact-path {{ .ArtifactPath }} --arch='{{ .Arch }}'
+      env:
+        - CREATE_GO_APP_VERSION=0.32.1
+        - GO_VERSION={{ .Env.GO_VERSION }}
+        - CI_PROJECT_URL={{ .Env.CI_PROJECT_URL }}
+        - GIT_SHORT_COMMIT={{ .ShortCommit }}
+        - ARTIFACTORY_DEB_URL={{ .Env.ARTIFACTORY_DEB_URL }}
+        - ARTIFACTORY_RPM_RHEL7_URL={{ .Env.ARTIFACTORY_RPM_RHEL7_URL }}
+        - ARTIFACTORY_RPM_RHEL8_URL={{ .Env.ARTIFACTORY_RPM_RHEL8_URL }}
+        - ARTIFACTORY_RPM_RHEL9_URL={{ .Env.ARTIFACTORY_RPM_RHEL9_URL }}
+        - ARTIFACTORY_ZIP_URL={{ .Env.ARTIFACTORY_ZIP_URL }}
+        - DOCKER_PASSWORD={{ .Env.DOCKER_PASSWORD }}
+        - DOCKER_USERNAME={{ .Env.DOCKER_USERNAME }}
+        - SUPPORTED_DEBIAN_RELEASES={{ .Env.SUPPORTED_DEBIAN_RELEASES }}
+before:
+    hooks:
+        - go generate ./...

@@ -1,0 +1,47 @@
+{
+  "extends": [
+    "config:base",
+    ":semanticCommitTypeAll(build)",
+    ":rebaseStalePrs"
+  ],
+  "labels": ["renovate", "dependencies", "wf::maintenance"],
+  "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"],
+  "assigneesFromCodeOwners": true,
+  "regexManagers": [
+    {
+      "fileMatch": [
+        "\\.gitlab-ci.*\\.yml$",
+        "\\.goreleaser.*\\.yml$"
+      ],
+      "matchStrings": [
+        "remote: https:\\/\\/gitlab\\.pnet\\.ch\\/linux\\/go\\/create-go-app\\/-\\/raw\\/v(?<currentValue>.*)\\/\\.gitlab-ci-include\\.yml",
+        "CREATE_GO_APP_VERSION=(?<currentValue>.*)",
+        "image: linux-docker-local.repo.pnet.ch/pf/create-go-app:(?<currentValue>.*)"
+      ],
+      "datasourceTemplate": "artifactory",
+      "depNameTemplate": "linux/go/create-go-app"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["go"],
+      "enabled": false
+    },
+    {
+      "description": "create-go-app",
+      "automerge": false,
+      "prBodyNotes": ["## :warning: CHECK OUT THIS BRANCH LOCALLY AND RUN `create-go-app update` ON THE CONSOLE :warning:"],
+      "registryUrls": [
+        "https://repo.pnet.ch/artifactory/linux-generic-local/"
+      ],
+      "matchDatasources": ["artifactory"],
+      "matchPackagePrefixes": ["linux/go/create-go-app"],
+      "extractVersion": "^([a-z_-])+(?<version>\\d+\\.\\d+\\.\\d+)(.*)(\\.zip)$",
+      "customChangelogUrl": "https://gitlab.pnet.ch/linux/go/create-go-app"
+    }
+  ]
+}
