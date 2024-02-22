@@ -46,6 +46,15 @@ func CheckAccessToken(cfg *config.Config, l *zap.SugaredLogger) echo.MiddlewareF
 	}
 }
 
+func Log(cfg *config.Config, l *zap.SugaredLogger) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			l.Debug(c.Request().URL)
+			return next(c)
+		}
+	}
+}
+
 // isWhitelisted checks if a given path is in the list of whitelisted paths
 func isWhitelisted(path string, whitelistedPaths []string) bool {
 	for _, p := range whitelistedPaths {

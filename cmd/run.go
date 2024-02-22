@@ -95,6 +95,8 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 
 	auth.Setup(e, &cfg, l)
 
+	e.Use(middleware.Log(&cfg, l))
+
 	e.Use(middleware.CheckAccessToken(&cfg, l))
 
 	proxy.Setup(e, &cfg, l)

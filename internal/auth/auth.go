@@ -121,7 +121,9 @@ func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) er
 	state := "none"
 	authURL := oauth2Config.AuthCodeURL(state)
 	l.Debugw("Redirecting to OIDC provider", "url", authURL)
-
+	l.Debugw(oauth2Config.Endpoint.AuthURL)
+	l.Debugw(oauth2Config.Endpoint.TokenURL)
+	l.Debugw(oauth2Config.Endpoint.DeviceAuthURL)
 	http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)
 	return err
 }
