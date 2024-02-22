@@ -36,20 +36,20 @@ type Oidc struct {
 	ClientID     string   `env:"CLIENT_ID" default:"grafana"`
 	ClientSecret string   `env:"CLIENT_SECRET" default:"Z7J9KjZUI1LiUDMKKrNCLuewY7DWgDsU"`
 	Issuer       string   `env:"ISSUER" default:"http://e1-zengeriv-alsu001:8080/realms/master"`
-	Scopes       []string `env:"SCOPES"`
+	Scopes       []string `env:"SCOPES" default:"openid,email,roles,profile"`
 	JwksUrl      string   `env:"JWKS_URL" default:"http://e1-zengeriv-alsu001.pnet.ch:8080/realms/master/protocol/openid-connect/certs"`
 }
 
 type Proxy struct {
-	ProxyTarget string `env:"PROXY_TARGET" default:"http://e1-zengeriv-alsu001:8081/"`
+	Target string `env:"TARGET" default:"http://e1-zengeriv-alsu001:8081/"`
 }
 
 type Grafana struct {
 	OrgAttributePath               string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
 	MappingConfigFile              string `env:"MAPPING_CONFIG_FILE" default:"./testdata/mapping.yml"`
-	SyncLoginOrEmailClaimAttribute string `env:"ClaimSYNC_NAME_CLAIM_ATTRIBUTE" default:"preferred_username"`
-	SyncEmailClaimAttribute        string `env:"ClaimSYNC_NAME_CLAIM_ATTRIBUTE" default:"email"`
-	SyncNameClaimAttribute         string `env:"ClaimSYNC_NAME_CLAIM_ATTRIBUTE" default:"name"`
+	SyncLoginOrEmailClaimAttribute string `env:"SYNC_NAME_CLAIM_ATTRIBUTE" default:"preferred_username"`
+	SyncEmailClaimAttribute        string `env:"SYNC_NAME_CLAIM_ATTRIBUTE" default:"email"`
+	SyncNameClaimAttribute         string `env:"SYNC_NAME_CLAIM_ATTRIBUTE" default:"name"`
 }
 
 func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
@@ -64,7 +64,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		Scopes:                         r.Scopes,
 		JwksUrl:                        r.JwksUrl,
 		RedirectGrafanaURL:             r.RedirectGrafanaURL,
-		ProxyTarget:                    r.ProxyTarget,
+		ProxyTarget:                    r.Target,
 		Port:                           r.Port,
 		Secure:                         r.Secure,
 		AccessTokenCookieName:          r.AccessTokenCookieName,

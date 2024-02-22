@@ -16,7 +16,7 @@ func UpdateUserMapping(idToken string, cfg *config.Config) error {
 		return err
 	}
 
-	claims, err := jwks.ParseJWTToken(idToken, cfg.SyncNameClaimAttribute)
+	claims, err := jwks.ParseJWTToken(idToken, cfg.JwksUrl)
 	if err != nil {
 		return err
 	}

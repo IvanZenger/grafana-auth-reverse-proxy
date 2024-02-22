@@ -31,8 +31,6 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 		return err
 	}
 
-	cfg.Scopes = []string{"openid", "email", "roles", "profile"}
-
 	oauth2Config := oauth2.Config{
 		ClientID:     cfg.ClientID,
 		RedirectURL:  cfg.RedirectURL,
@@ -111,8 +109,6 @@ func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) er
 	if err != nil {
 		return err
 	}
-
-	cfg.Scopes = []string{"openid", "email", "roles", "profile"}
 
 	oauth2Config := oauth2.Config{
 		ClientID:     cfg.ClientID,

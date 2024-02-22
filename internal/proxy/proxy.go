@@ -43,18 +43,18 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 
 		loginOrEmail, err := jwks.ExtractClaimValue(claims, cfg.SyncLoginOrEmailClaimAttribute)
 		if err != nil {
-			l.Errorw("Failed to extract username from token", "error", err)
+			l.Errorw("Failed to extract loginOrEmail from token", "error", err)
 			return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
 
 		email, err := jwks.ExtractClaimValue(claims, cfg.SyncEmailClaimAttribute)
 		if err != nil {
-			l.Warn("Failed to extract username from token", "error", err)
+			l.Warnw("Failed to extract email from token", "error", err)
 		}
 
 		name, err := jwks.ExtractClaimValue(claims, cfg.SyncNameClaimAttribute)
 		if err != nil {
-			l.Warn("Failed to extract username from token", "error", err)
+			l.Warnw("Failed to extract name from token", "error", err)
 		}
 
 		if loginOrEmail != "" {
