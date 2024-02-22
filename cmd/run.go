@@ -1,21 +1,23 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/auth"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/middleware"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/proxy"
 	"go.uber.org/zap"
+	"net/url"
+	"path"
 )
 
 type Run struct {
-	Server             `envprefix:"SERVER_"`
-	TokenConfig        `envprefix:"TOKEN_CONFIG_"`
-	Oidc               `envprefix:"OIDC_"`
-	Proxy              `envprefix:"PROXY_"`
-	Grafana            `envprefix:"GRAFANA_"`
-	RedirectGrafanaURL string `env:"REDIRECT_GRAFANA_URL" default:"http://e1-zengeriv-alsu001:8082/"`
+	Server      `envprefix:"SERVER_"`
+	TokenConfig `envprefix:"TOKEN_CONFIG_"`
+	Oidc        `envprefix:"OIDC_"`
+	Proxy       `envprefix:"PROXY_"`
+	Grafana     `envprefix:"GRAFANA_"`
 }
 
 type Server struct {
@@ -23,11 +25,11 @@ type Server struct {
 	AuthEndpoint     string `env:"AUTH_ENDPOINT" default:"/auth"`
 	Port             string `env:"PORT" default:"8082"`
 	Secure           bool   `env:"SECURE" default:"true"`
+	RootUrl          string `env:"ROOT_URL" default:"http://e1-zengeriv-alsu001:8082/grafana/"`
 }
 
 type TokenConfig struct {
 	TokenPath             string `env:"TOKEN_PATH" default:"id_token"`
-	UsernameClaim         string `env:"USERNAME_CLAIM" default:"preferred_username"`
 	AccessTokenCookieName string `env:"ACCESS_TOKEN_COOKIE_NAME" default:"x-access-token"`
 }
 
@@ -53,6 +55,16 @@ type Grafana struct {
 }
 
 func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
+	basePath, err := getBasePath(r.RootUrl)
+	if err != nil {
+		return err
+	}
+
+	if basePath != "" {
+		r.CallbackEndpoint = path.Join(basePath, r.CallbackEndpoint)
+		r.AuthEndpoint = path.Join(basePath, r.AuthEndpoint)
+	}
+
 	cfg := config.Config{
 		CallbackEndpoint:               r.CallbackEndpoint,
 		AuthEndpoint:                   r.AuthEndpoint,
@@ -63,10 +75,11 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		Issuer:                         r.Issuer,
 		Scopes:                         r.Scopes,
 		JwksUrl:                        r.JwksUrl,
-		RedirectGrafanaURL:             r.RedirectGrafanaURL,
 		ProxyTarget:                    r.Target,
 		Port:                           r.Port,
 		Secure:                         r.Secure,
+		RootUrl:                        r.RootUrl,
+		BasePath:                       basePath,
 		AccessTokenCookieName:          r.AccessTokenCookieName,
 		OrgAttributePath:               r.OrgAttributePath,
 		MappingConfigFile:              r.MappingConfigFile,
@@ -74,6 +87,9 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		SyncEmailClaimAttribute:        r.SyncEmailClaimAttribute,
 		SyncNameClaimAttribute:         r.SyncNameClaimAttribute,
 	}
+
+	l.Info("Starting Grafana Auth Reverse Proxy")
+	cfg.LogConfig(l)
 
 	e := echo.New()
 
@@ -90,4 +106,13 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 	}
 
 	return nil
+}
+
+func getBasePath(u string) (string, error) {
+	parsedUrl, err := url.Parse(u)
+	if err != nil {
+		return "", fmt.Errorf("Invalid RootUrl: %v", err)
+	}
+
+	return parsedUrl.Path, err
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/labstack/echo/v4"
+	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/grafana"
 	"go.uber.org/zap"
@@ -15,7 +16,7 @@ import (
 func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 	e.GET(cfg.CallbackEndpoint, func(c echo.Context) error {
 		return Callback(c, cfg, l)
-	})
+	}, echomiddleware.Logger())
 
 	e.GET(cfg.AuthEndpoint, func(c echo.Context) error {
 		return Authenticate(c, cfg, l)
@@ -79,7 +80,7 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 	}
 
 	cookie := &http.Cookie{
-		Name:     "x-access-token",
+		Name:     cfg.AccessTokenCookieName,
 		Value:    oauth2Token.AccessToken,
 		HttpOnly: true,
 		Secure:   cfg.Secure,
@@ -93,11 +94,11 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 		l.Error(err)
 	}
 
-	return ctx.Redirect(302, cfg.RedirectGrafanaURL)
+	return ctx.Redirect(302, cfg.RootUrl)
 }
 
 func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error {
-	l.Info("Authenticating user")
+	l.Debug("Authenticating user")
 	c := context.Background()
 
 	provider, err := oidc.NewProvider(c, cfg.Issuer)

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"path"
 )
 
 func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
@@ -19,8 +20,8 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
-	e.Any("/*", func(c echo.Context) error {
-		l.Debug("Proxying request")
+	e.Any(path.Join(cfg.BasePath, "/*"), func(c echo.Context) error {
+		l.Debugw("Proxying request", "method", c.Request().Method, "uri", c.Request().RequestURI)
 
 		req := c.Request()
 		res := c.Response()
@@ -30,7 +31,7 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 		req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
 		req.Host = targetURL.Host
 
-		cookie, err := req.Cookie("x-access-token")
+		cookie, err := req.Cookie(cfg.AccessTokenCookieName)
 		if err != nil {
 			l.Debugw("Failed to get cookie", "error", err)
 			return c.Redirect(http.StatusFound, "/auth")

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 	"os"
 )
@@ -16,10 +17,11 @@ type Config struct {
 	Issuer                         string
 	Scopes                         []string
 	JwksUrl                        string
-	RedirectGrafanaURL             string
 	ProxyTarget                    string
 	Port                           string
 	Secure                         bool
+	RootUrl                        string
+	BasePath                       string
 	AccessTokenCookieName          string
 	OrgAttributePath               string
 	MappingConfigFile              string
@@ -51,4 +53,35 @@ func LoadOrgMappingConfig(filename string) (*OrgMappingConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func (cfg *Config) LogConfig(l *zap.SugaredLogger) {
+	l.Info("Configuration Details")
+	l.Infow("Server Configuration",
+		"Port", cfg.Port,
+		"CallbackEndpoint", cfg.CallbackEndpoint,
+		"AuthEndpoint", cfg.AuthEndpoint,
+		"Secure", cfg.Secure,
+	)
+	l.Infow("Token Configuration",
+		"TokenPath", cfg.TokenPath,
+		"AccessTokenCookieName", cfg.AccessTokenCookieName,
+	)
+	l.Infow("OIDC Configuration",
+		"ClientID", cfg.ClientID,
+		"Issuer", cfg.Issuer,
+		"RedirectURL", cfg.RedirectURL,
+		"Scopes", cfg.Scopes,
+		"JwksUrl", cfg.JwksUrl,
+	)
+	l.Infow("Proxy Configuration",
+		"ProxyTarget", cfg.ProxyTarget,
+	)
+	l.Infow("Grafana Configuration",
+		"OrgAttributePath", cfg.OrgAttributePath,
+		"MappingConfigFile", cfg.MappingConfigFile,
+		"SyncLoginOrEmailClaimAttribute", cfg.SyncLoginOrEmailClaimAttribute,
+		"SyncEmailClaimAttribute", cfg.SyncEmailClaimAttribute,
+		"SyncNameClaimAttribute", cfg.SyncNameClaimAttribute,
+	)
 }
