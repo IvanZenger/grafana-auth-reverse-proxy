@@ -40,6 +40,8 @@ func GetTokenFromRequest(req *http.Request, cookieName string) (string, error) {
 		if len(splitToken) == 2 {
 			return splitToken[1], nil
 		}
+	} else {
+		fmt.Println("Auth Header is empty")
 	}
 
 	cookie, err := req.Cookie(cookieName)
