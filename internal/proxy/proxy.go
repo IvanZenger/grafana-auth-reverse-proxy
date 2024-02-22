@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/jwks"
@@ -9,6 +10,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"path"
+	"strings"
 )
 
 func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
@@ -31,13 +33,13 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 		req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
 		req.Host = targetURL.Host
 
-		cookie, err := req.Cookie(cfg.AccessTokenCookieName)
+		token, err := getTokenFromRequest(req, cfg.AccessTokenCookieName)
 		if err != nil {
-			l.Debugw("Failed to get cookie", "error", err)
-			return c.Redirect(http.StatusFound, "/auth")
+			l.Debugw("Failed to get token", "error", err)
+			return c.Redirect(http.StatusFound, cfg.AuthEndpoint)
 		}
 
-		claims, err := jwks.ParseJWTToken(cookie.Value, cfg.JwksUrl)
+		claims, err := jwks.ParseJWTToken(token, cfg.JwksUrl)
 		if err != nil {
 			l.Error("Error parsing token:", err)
 		}
@@ -76,5 +78,21 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 		proxy.ServeHTTP(res, req)
 		return nil
 	})
+}
 
+func getTokenFromRequest(req *http.Request, cookieName string) (string, error) {
+	authHeader := req.Header.Get("Authorization")
+	if authHeader != "" {
+		splitToken := strings.Split(authHeader, "Bearer ")
+		if len(splitToken) == 2 {
+			return splitToken[1], nil
+		}
+	}
+
+	cookie, err := req.Cookie(cookieName)
+	if err == nil {
+		return cookie.Value, nil
+	}
+
+	return "", fmt.Errorf("no token found")
 }

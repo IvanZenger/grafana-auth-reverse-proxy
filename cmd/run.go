@@ -25,7 +25,7 @@ type Server struct {
 	AuthEndpoint     string `env:"AUTH_ENDPOINT" default:"/auth"`
 	Port             string `env:"PORT" default:"8082"`
 	Secure           bool   `env:"SECURE" default:"true"`
-	RootUrl          string `env:"ROOT_URL" default:"http://e1-zengeriv-alsu001:8082/grafana/"`
+	RootUrl          string `env:"ROOT_URL" default:"http://e1-zengeriv-alsu001:8082/"`
 }
 
 type TokenConfig struct {

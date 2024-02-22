@@ -19,9 +19,25 @@ func CheckAccessToken(cfg *config.Config, l *zap.SugaredLogger) echo.MiddlewareF
 				return next(c)
 			}
 
-			_, err := c.Cookie(cfg.AccessTokenCookieName)
-			if err != nil {
-				l.Debugw("Access token cookie missing or invalid", "path", urlPath, "error", err)
+			var extractedToken string
+
+			authHeader := c.Request().Header.Get("Authorization")
+			if authHeader != "" {
+				splitToken := strings.Split(authHeader, "Bearer ")
+				if len(splitToken) == 2 {
+					extractedToken = splitToken[1]
+				}
+			}
+
+			if extractedToken == "" {
+				cookie, err := c.Cookie(cfg.AccessTokenCookieName)
+				if err == nil {
+					l.Debugw("Access token cookie missing or invalid", "path", urlPath, "error", err)
+					extractedToken = cookie.Value
+				}
+			}
+
+			if extractedToken == "" {
 				return c.Redirect(http.StatusFound, cfg.AuthEndpoint)
 			}
 
