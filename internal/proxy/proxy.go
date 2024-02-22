@@ -41,7 +41,7 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 			l.Error("Error parsing token:", err)
 		}
 
-		username, err := jwks.ExtractClaimValue(claims, cfg.SyncLoginOrEmailClaimAttribute)
+		loginOrEmail, err := jwks.ExtractClaimValue(claims, cfg.SyncLoginOrEmailClaimAttribute)
 		if err != nil {
 			l.Errorw("Failed to extract username from token", "error", err)
 			return echo.NewHTTPError(http.StatusForbidden, "Access denied")
@@ -57,18 +57,18 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 			l.Warn("Failed to extract username from token", "error", err)
 		}
 
-		if username != "" {
-			l.Debugw("Extracted username", "username", username)
-			req.Header.Set("X-WEBAUTH-USER", username)
+		if loginOrEmail != "" {
+			l.Debugw("Extracted loginOrEmail", "loginOrEmail", loginOrEmail)
+			req.Header.Set("X-WEBAUTH-USER", loginOrEmail)
 		}
 
 		if email != "" {
-			l.Debugw("Extracted email", "username", username)
+			l.Debugw("Extracted email", "email", email)
 			req.Header.Set("X-WEBAUTH-EMAIL", email)
 		}
 
 		if name != "" {
-			l.Debugw("Extracted name", "username", username)
+			l.Debugw("Extracted name", "name", name)
 			req.Header.Set("X-WEBAUTH-NAME", name)
 		}
 

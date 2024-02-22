@@ -22,24 +22,19 @@ type JSONWebKeys struct {
 }
 
 func ExtractTokenUsername(tokenString string, jwksUrl string) (string, error) {
-
-	// Parse the token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Validate the alg is what you expect
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		/*cert, err := getPemCertFromJWKS(jwksUrl, token)
+		cert, err := getPemCertFromJWKS(jwksUrl, token)
 
 		if err != nil {
 			fmt.Println(err)
 			return "", err
 		}
 
-		*/
-
-		cert := "-----BEGIN CERTIFICATE-----\nMIICmzCCAYMCBgGNwU5ZrzANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZtYXN0ZXIwHhcNMjQwMjE5MTIxNzMzWhcNMzQwMjE5MTIxOTEzWjARMQ8wDQYDVQQDDAZtYXN0ZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCyjHMvkvvNcZjTLv//zlXIth3tbrH4XeJRzdVEhnLDeFtjZcQ/tph0PdwEHd6zIOWn\nj9M+JL5p78ix4oNm0ZpOZ0/IRzgcFuWmG3FRujb6YJEgNucSvxbjsttR/2mdDudEu09xdXJljxepZoVeHXw/6qRNpfjN4FuBQxsejpthO+3neSZxWqzO/eSpqIJ468g30cj5Ez8lZRTu7d1pN+GtOXLE5vZSOnQrdSEspjLVWKD7Ai0ENHEqzXR7/RvOKc1RN2vRAOvS1UG8n0/ZJQ4GsEgld5pAO0YV5iAXOMzJNnK0NxMsC9Xh\ntTTc5I2vxRdyH1xKclYKeozWjQrRqKRPAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAF/8AJuIvUt6tx47BQJ/eTiOAWOpQJ/rxureISDYEQW/kVLYa/XRdZP3OLgDglmjcuYznPKWYjFSlHu+2BusoxUch3vdgEPHSgUu/0eR3rmk6tq39bspT8DPYNCc5MSFNX62zkIuVnXBBYJFgDNSdnXIUJWyGZrQxcsvf2G/aLtOtQfeSr+z\nCFo0wSIBWnG8N8IacQDNatCucWrnnblSwfRAJNJXs53PIwNCm/LQsnV0aXgU8v2hBvhnF9N+hE2zRZBWc33/11otJt3F27XG8AqX7OS04OYHqzSO54JqmcVoX1X30Zwqsxzw4FEEjMZKTnBxOqkENr6sYuYepvjgKts=\n-----END CERTIFICATE-----\n"
+		//cert := "-----BEGIN CERTIFICATE-----\nMIICmzCCAYMCBgGNwU5ZrzANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZtYXN0ZXIwHhcNMjQwMjE5MTIxNzMzWhcNMzQwMjE5MTIxOTEzWjARMQ8wDQYDVQQDDAZtYXN0ZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCyjHMvkvvNcZjTLv//zlXIth3tbrH4XeJRzdVEhnLDeFtjZcQ/tph0PdwEHd6zIOWn\nj9M+JL5p78ix4oNm0ZpOZ0/IRzgcFuWmG3FRujb6YJEgNucSvxbjsttR/2mdDudEu09xdXJljxepZoVeHXw/6qRNpfjN4FuBQxsejpthO+3neSZxWqzO/eSpqIJ468g30cj5Ez8lZRTu7d1pN+GtOXLE5vZSOnQrdSEspjLVWKD7Ai0ENHEqzXR7/RvOKc1RN2vRAOvS1UG8n0/ZJQ4GsEgld5pAO0YV5iAXOMzJNnK0NxMsC9Xh\ntTTc5I2vxRdyH1xKclYKeozWjQrRqKRPAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAF/8AJuIvUt6tx47BQJ/eTiOAWOpQJ/rxureISDYEQW/kVLYa/XRdZP3OLgDglmjcuYznPKWYjFSlHu+2BusoxUch3vdgEPHSgUu/0eR3rmk6tq39bspT8DPYNCc5MSFNX62zkIuVnXBBYJFgDNSdnXIUJWyGZrQxcsvf2G/aLtOtQfeSr+z\nCFo0wSIBWnG8N8IacQDNatCucWrnnblSwfRAJNJXs53PIwNCm/LQsnV0aXgU8v2hBvhnF9N+hE2zRZBWc33/11otJt3F27XG8AqX7OS04OYHqzSO54JqmcVoX1X30Zwqsxzw4FEEjMZKTnBxOqkENr6sYuYepvjgKts=\n-----END CERTIFICATE-----\n"
 
 		publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 		if err != nil {
@@ -68,13 +63,13 @@ func ParseJWTToken(tokenString, jwksUrl string) (jwt.MapClaims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		cert := "-----BEGIN CERTIFICATE-----\nMIICmzCCAYMCBgGNwU5ZrzANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZtYXN0ZXIwHhcNMjQwMjE5MTIxNzMzWhcNMzQwMjE5MTIxOTEzWjARMQ8wDQYDVQQDDAZtYXN0ZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCyjHMvkvvNcZjTLv//zlXIth3tbrH4XeJRzdVEhnLDeFtjZcQ/tph0PdwEHd6zIOWn\nj9M+JL5p78ix4oNm0ZpOZ0/IRzgcFuWmG3FRujb6YJEgNucSvxbjsttR/2mdDudEu09xdXJljxepZoVeHXw/6qRNpfjN4FuBQxsejpthO+3neSZxWqzO/eSpqIJ468g30cj5Ez8lZRTu7d1pN+GtOXLE5vZSOnQrdSEspjLVWKD7Ai0ENHEqzXR7/RvOKc1RN2vRAOvS1UG8n0/ZJQ4GsEgld5pAO0YV5iAXOMzJNnK0NxMsC9Xh\ntTTc5I2vxRdyH1xKclYKeozWjQrRqKRPAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAF/8AJuIvUt6tx47BQJ/eTiOAWOpQJ/rxureISDYEQW/kVLYa/XRdZP3OLgDglmjcuYznPKWYjFSlHu+2BusoxUch3vdgEPHSgUu/0eR3rmk6tq39bspT8DPYNCc5MSFNX62zkIuVnXBBYJFgDNSdnXIUJWyGZrQxcsvf2G/aLtOtQfeSr+z\nCFo0wSIBWnG8N8IacQDNatCucWrnnblSwfRAJNJXs53PIwNCm/LQsnV0aXgU8v2hBvhnF9N+hE2zRZBWc33/11otJt3F27XG8AqX7OS04OYHqzSO54JqmcVoX1X30Zwqsxzw4FEEjMZKTnBxOqkENr6sYuYepvjgKts=\n-----END CERTIFICATE-----\n"
-		/*
-			cert, err := getPemCertFromJWKS(jwksUrl, token)
-			if err != nil {
-				return nil, err
-			}
-		*/
+		//cert := "-----BEGIN CERTIFICATE-----\nMIICmzCCAYMCBgGNwU5ZrzANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZtYXN0ZXIwHhcNMjQwMjE5MTIxNzMzWhcNMzQwMjE5MTIxOTEzWjARMQ8wDQYDVQQDDAZtYXN0ZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCyjHMvkvvNcZjTLv//zlXIth3tbrH4XeJRzdVEhnLDeFtjZcQ/tph0PdwEHd6zIOWn\nj9M+JL5p78ix4oNm0ZpOZ0/IRzgcFuWmG3FRujb6YJEgNucSvxbjsttR/2mdDudEu09xdXJljxepZoVeHXw/6qRNpfjN4FuBQxsejpthO+3neSZxWqzO/eSpqIJ468g30cj5Ez8lZRTu7d1pN+GtOXLE5vZSOnQrdSEspjLVWKD7Ai0ENHEqzXR7/RvOKc1RN2vRAOvS1UG8n0/ZJQ4GsEgld5pAO0YV5iAXOMzJNnK0NxMsC9Xh\ntTTc5I2vxRdyH1xKclYKeozWjQrRqKRPAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAF/8AJuIvUt6tx47BQJ/eTiOAWOpQJ/rxureISDYEQW/kVLYa/XRdZP3OLgDglmjcuYznPKWYjFSlHu+2BusoxUch3vdgEPHSgUu/0eR3rmk6tq39bspT8DPYNCc5MSFNX62zkIuVnXBBYJFgDNSdnXIUJWyGZrQxcsvf2G/aLtOtQfeSr+z\nCFo0wSIBWnG8N8IacQDNatCucWrnnblSwfRAJNJXs53PIwNCm/LQsnV0aXgU8v2hBvhnF9N+hE2zRZBWc33/11otJt3F27XG8AqX7OS04OYHqzSO54JqmcVoX1X30Zwqsxzw4FEEjMZKTnBxOqkENr6sYuYepvjgKts=\n-----END CERTIFICATE-----\n"
+
+		cert, err := getPemCertFromJWKS(jwksUrl, token)
+		if err != nil {
+			return nil, err
+		}
+
 		publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 		if err != nil {
 			return nil, err
@@ -107,33 +102,30 @@ func ExtractClaimValue(claims jwt.MapClaims, key string) (string, error) {
 }
 
 func getPemCertFromJWKS(jwksURL string, token *jwt.Token) (string, error) {
-	cert := ""
-
-	resp, err := http.Get(jwksURL) //nolint:gosec //The variable jwksURL can't be a constant because its value depends on the deployment environment.
-
+	resp, err := http.Get(jwksURL)
 	if err != nil {
-		fmt.Println(err)
-		return cert, err
+		return "", fmt.Errorf("failed to fetch JWKS: %w", err)
 	}
-
 	defer resp.Body.Close()
 
-	var jwks = Jwks{}
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
-
-	if err != nil {
-		return cert, err
+	var jwks Jwks
+	if err := json.NewDecoder(resp.Body).Decode(&jwks); err != nil {
+		return "", fmt.Errorf("failed to decode JWKS: %w", err)
 	}
 
-	for k := range jwks.Keys {
-		if token.Header["kid"] == jwks.Keys[k].Kid {
-			cert = "-----BEGIN CERTIFICATE-----\n" + jwks.Keys[k].X5c[0] + "\n-----END CERTIFICATE-----"
+	kid, ok := token.Header["kid"].(string)
+	if !ok {
+		return "", fmt.Errorf("token 'kid' header is missing or not a string")
+	}
+
+	for _, key := range jwks.Keys {
+		if key.Kid == kid {
+			if len(key.X5c) > 0 {
+				return "-----BEGIN CERTIFICATE-----\n" + key.X5c[0] + "\n-----END CERTIFICATE-----", nil
+			}
+			return "", fmt.Errorf("certificate for 'kid' %s not found in JWKS", kid)
 		}
 	}
 
-	if cert == "" {
-		return cert, err
-	}
-
-	return cert, nil
+	return "", fmt.Errorf("no matching 'kid' found in JWKS")
 }

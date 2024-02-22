@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/labstack/echo/v4"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
@@ -91,7 +90,6 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 
 	ctx.SetCookie(cookie)
 
-	fmt.Print(rawIDToken)
 	err = grafana.UpdateUserMapping(rawIDToken, cfg)
 	if err != nil {
 		l.Error(err)

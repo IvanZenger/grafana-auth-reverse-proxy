@@ -16,11 +16,16 @@ func UpdateUserMapping(idToken string, cfg *config.Config) error {
 		return err
 	}
 
-	username, err := jwks.ExtractTokenUsername(idToken, cfg.JwksUrl)
+	claims, err := jwks.ParseJWTToken(idToken, cfg.SyncNameClaimAttribute)
+	if err != nil {
+		return err
+	}
+
+	loginOrEmail, err := jwks.ExtractClaimValue(claims, cfg.SyncLoginOrEmailClaimAttribute)
 	if err != nil {
 		return err
 	}
 
 	resolvedMappings := resolveMappings(groups, mappings.OrgMappings)
-	return updateUserOrgRoles(username, cfg.ProxyTarget, resolvedMappings)
+	return updateUserOrgRoles(loginOrEmail, cfg.ProxyTarget, resolvedMappings)
 }

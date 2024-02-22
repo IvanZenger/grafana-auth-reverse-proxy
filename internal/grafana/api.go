@@ -19,14 +19,14 @@ type UserOrg struct {
 	Role  string `json:"role"`
 }
 
-func updateUserOrgRoles(username, host string, resolvedMappings []config.OrgMapping) error {
-	userId, statusCode, err := getUserId(username, host)
+func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.OrgMapping) error {
+	userId, statusCode, err := getUserId(loginOrEmail, host)
 	if err != nil {
 		return err
 	}
 
 	if statusCode == http.StatusNotFound {
-		userId, err = createUser(username, host)
+		userId, err = createUser(loginOrEmail, host)
 		if err != nil {
 			return err
 		}
@@ -39,7 +39,7 @@ func updateUserOrgRoles(username, host string, resolvedMappings []config.OrgMapp
 
 	for _, rm := range resolvedMappings {
 		if !orgExists(userOrgs, rm.OrgID) || orgRoleDiffers(userOrgs, rm.OrgID, rm.OrgRole) {
-			err := updateUserRoleInOrg(host, userId, rm.OrgID, username, rm.OrgRole)
+			err := updateUserRoleInOrg(host, userId, rm.OrgID, loginOrEmail, rm.OrgRole)
 			if err != nil {
 				return err
 			}
@@ -49,8 +49,8 @@ func updateUserOrgRoles(username, host string, resolvedMappings []config.OrgMapp
 	return nil
 }
 
-func getUserId(username, host string) (int, int, error) {
-	uri := fmt.Sprintf("/api/users/lookup?loginOrEmail=%s", username)
+func getUserId(loginOrEmail, host string) (int, int, error) {
+	uri := fmt.Sprintf("/api/users/lookup?loginOrEmail=%s", loginOrEmail)
 
 	resp, err := Request(http.MethodGet, host, uri, "")
 	if err != nil {
@@ -72,8 +72,8 @@ func getUserId(username, host string) (int, int, error) {
 	return user.ID, resp.StatusCode, nil
 }
 
-func createUser(username, host string) (int, error) {
-	resp, err := Request(http.MethodGet, host, "/api/users", username)
+func createUser(loginOrEmail, host string) (int, error) {
+	resp, err := Request(http.MethodGet, host, "/api/users", loginOrEmail)
 	if err != nil {
 		return 0, fmt.Errorf("error making request to Grafana: %w", err)
 	}
@@ -115,7 +115,6 @@ func getUserOrgs(userId int, host string) ([]UserOrg, error) {
 func updateOrgUser(userId, orgId int, role, host string) error {
 	uri := fmt.Sprintf("/api/orgs/%d/users/%d", orgId, userId)
 
-	// Prepare the request body
 	requestBody, err := json.Marshal(map[string]string{"role": role})
 	if err != nil {
 		return fmt.Errorf("error marshaling request body: %w", err)
