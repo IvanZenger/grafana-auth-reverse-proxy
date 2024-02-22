@@ -36,15 +36,40 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 			return c.Redirect(http.StatusFound, "/auth")
 		}
 
-		username, err := jwks.ExtractTokenUsername(cookie.Value, cfg.JwksUrl)
+		claims, err := jwks.ParseJWTToken(cookie.Value, cfg.JwksUrl)
+		if err != nil {
+			l.Error("Error parsing token:", err)
+		}
+
+		username, err := jwks.ExtractClaimValue(claims, cfg.SyncLoginOrEmailClaimAttribute)
 		if err != nil {
 			l.Errorw("Failed to extract username from token", "error", err)
 			return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
 
+		email, err := jwks.ExtractClaimValue(claims, cfg.SyncEmailClaimAttribute)
+		if err != nil {
+			l.Warn("Failed to extract username from token", "error", err)
+		}
+
+		name, err := jwks.ExtractClaimValue(claims, cfg.SyncNameClaimAttribute)
+		if err != nil {
+			l.Warn("Failed to extract username from token", "error", err)
+		}
+
 		if username != "" {
 			l.Debugw("Extracted username", "username", username)
 			req.Header.Set("X-WEBAUTH-USER", username)
+		}
+
+		if email != "" {
+			l.Debugw("Extracted email", "username", username)
+			req.Header.Set("X-WEBAUTH-EMAIL", email)
+		}
+
+		if name != "" {
+			l.Debugw("Extracted name", "username", username)
+			req.Header.Set("X-WEBAUTH-NAME", name)
 		}
 
 		proxy.ServeHTTP(res, req)

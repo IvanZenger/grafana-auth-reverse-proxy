@@ -45,28 +45,34 @@ type Proxy struct {
 }
 
 type Grafana struct {
-	OrgAttributePath  string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
-	MappingConfigFile string `env:"MAPPING_CONFIG_FILE" default:"./testdata/mapping.yml"`
+	OrgAttributePath               string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
+	MappingConfigFile              string `env:"MAPPING_CONFIG_FILE" default:"./testdata/mapping.yml"`
+	SyncLoginOrEmailClaimAttribute string `env:"ClaimSYNC_NAME_CLAIM_ATTRIBUTE" default:"preferred_username"`
+	SyncEmailClaimAttribute        string `env:"ClaimSYNC_NAME_CLAIM_ATTRIBUTE" default:"email"`
+	SyncNameClaimAttribute         string `env:"ClaimSYNC_NAME_CLAIM_ATTRIBUTE" default:"name"`
 }
 
 func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 	cfg := config.Config{
-		CallbackEndpoint:      r.CallbackEndpoint,
-		AuthEndpoint:          r.AuthEndpoint,
-		TokenPath:             r.TokenPath,
-		RedirectURL:           r.RedirectURL,
-		ClientID:              r.ClientID,
-		ClientSecret:          r.ClientSecret,
-		Issuer:                r.Issuer,
-		Scopes:                r.Scopes,
-		JwksUrl:               r.JwksUrl,
-		RedirectGrafanaURL:    r.RedirectGrafanaURL,
-		ProxyTarget:           r.ProxyTarget,
-		Port:                  r.Port,
-		Secure:                r.Secure,
-		AccessTokenCookieName: r.AccessTokenCookieName,
-		OrgAttributePath:      r.OrgAttributePath,
-		MappingConfigFile:     r.MappingConfigFile,
+		CallbackEndpoint:               r.CallbackEndpoint,
+		AuthEndpoint:                   r.AuthEndpoint,
+		TokenPath:                      r.TokenPath,
+		RedirectURL:                    r.RedirectURL,
+		ClientID:                       r.ClientID,
+		ClientSecret:                   r.ClientSecret,
+		Issuer:                         r.Issuer,
+		Scopes:                         r.Scopes,
+		JwksUrl:                        r.JwksUrl,
+		RedirectGrafanaURL:             r.RedirectGrafanaURL,
+		ProxyTarget:                    r.ProxyTarget,
+		Port:                           r.Port,
+		Secure:                         r.Secure,
+		AccessTokenCookieName:          r.AccessTokenCookieName,
+		OrgAttributePath:               r.OrgAttributePath,
+		MappingConfigFile:              r.MappingConfigFile,
+		SyncLoginOrEmailClaimAttribute: r.SyncLoginOrEmailClaimAttribute,
+		SyncEmailClaimAttribute:        r.SyncEmailClaimAttribute,
+		SyncNameClaimAttribute:         r.SyncNameClaimAttribute,
 	}
 
 	e := echo.New()
