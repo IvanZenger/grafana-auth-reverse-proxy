@@ -6,7 +6,7 @@ import (
 )
 
 func UpdateUserMapping(idToken string, cfg *config.Config) error {
-	mappings, err := config.LoadOrgMappingConfig("path/to/your/config.yaml")
+	mappings, err := config.LoadOrgMappingConfig(cfg.MappingConfigFile)
 	if err != nil {
 		return err
 	}

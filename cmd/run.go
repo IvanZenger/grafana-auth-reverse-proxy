@@ -15,13 +15,14 @@ type Run struct {
 	Oidc               `envprefix:"OIDC_"`
 	Proxy              `envprefix:"PROXY_"`
 	Grafana            `envprefix:"GRAFANA_"`
-	RedirectGrafanaURL string `env:"REDIRECT_GRAFANA_URL" default:"http://e1-zengeriv-alsu001:8081/"`
+	RedirectGrafanaURL string `env:"REDIRECT_GRAFANA_URL" default:"http://e1-zengeriv-alsu001:8082/"`
 }
 
 type Server struct {
 	CallbackEndpoint string `env:"CALLBACK_ENDPOINT" default:"/callback"`
 	AuthEndpoint     string `env:"AUTH_ENDPOINT" default:"/auth"`
 	Port             string `env:"PORT" default:"8082"`
+	Secure           bool   `env:"SECURE" default:"true"`
 }
 
 type TokenConfig struct {
@@ -44,7 +45,8 @@ type Proxy struct {
 }
 
 type Grafana struct {
-	OrgAttributePath string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
+	OrgAttributePath  string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
+	MappingConfigFile string `env:"MAPPING_CONFIG_FILE" default:"./testdata/mapping.yml"`
 }
 
 func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
@@ -61,8 +63,10 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		RedirectGrafanaURL:    r.RedirectGrafanaURL,
 		ProxyTarget:           r.ProxyTarget,
 		Port:                  r.Port,
+		Secure:                r.Secure,
 		AccessTokenCookieName: r.AccessTokenCookieName,
 		OrgAttributePath:      r.OrgAttributePath,
+		MappingConfigFile:     r.MappingConfigFile,
 	}
 
 	e := echo.New()
@@ -74,7 +78,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 	proxy.Setup(e, &cfg, l)
 
 	l.Infof("Starting server on port %s", cfg.Port)
-	if err := e.Start(cfg.Port); err != nil {
+	if err := e.Start(":" + cfg.Port); err != nil {
 		l.Errorf("Failed to start server: %v", err)
 		return err
 	}

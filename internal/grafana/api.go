@@ -39,7 +39,7 @@ func updateUserOrgRoles(username, host string, resolvedMappings []config.OrgMapp
 
 	for _, rm := range resolvedMappings {
 		if !orgExists(userOrgs, rm.OrgID) || orgRoleDiffers(userOrgs, rm.OrgID, rm.OrgRole) {
-			err := updateOrgUser(userId, rm.OrgID, rm.OrgRole, host)
+			err := updateUserRoleInOrg(host, userId, rm.OrgID, username, rm.OrgRole)
 			if err != nil {
 				return err
 			}
@@ -135,6 +135,49 @@ func updateOrgUser(userId, orgId int, role, host string) error {
 	return nil
 }
 
+func updateUserRoleInOrg(host string, userId, orgId int, loginOrEmail, newRole string) error {
+	userOrgs, err := getUserOrgs(userId, host)
+	if err != nil {
+		return fmt.Errorf("error getting user organizations: %w", err)
+	}
+
+	if orgExists(userOrgs, orgId) {
+		if orgRoleDiffers(userOrgs, orgId, newRole) {
+			return updateOrgUser(userId, orgId, newRole, host)
+		}
+		return nil
+	} else {
+		if err := addUserToOrg(orgId, loginOrEmail, newRole, host); err != nil {
+			return fmt.Errorf("error adding user to organization: %w", err)
+		}
+		return updateOrgUser(userId, orgId, newRole, host)
+	}
+}
+
+func addUserToOrg(orgId int, loginOrEmail, role, host string) error {
+	uri := fmt.Sprintf("/api/orgs/%d/users", orgId)
+
+	requestBody, err := json.Marshal(map[string]interface{}{
+		"loginOrEmail": loginOrEmail,
+		"role":         role,
+	})
+	if err != nil {
+		return fmt.Errorf("error marshaling request body: %w", err)
+	}
+
+	resp, err := RequestWithBody(http.MethodPost, host, uri, "", requestBody)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("Grafana API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
 func orgExists(orgs []UserOrg, orgId int) bool {
 	for _, org := range orgs {
 		if org.OrgID == orgId {
@@ -201,11 +244,6 @@ func RequestWithBody(method, host, uri, authUser string, requestBody []byte) (*h
 	} else {
 		req.Header.Add("X-WEBAUTH-USER", authUser)
 	}
-
-	/*
-		req.Header.Add("X-WEBAUTH-USER", "grafana-auth-reverse-proxy")
-		req.Header.Add("X-WEBAUTH-ROLE", "GrafanaAdmin")
-	*/
 
 	req.Header.Set("Content-Type", "application/json")
 

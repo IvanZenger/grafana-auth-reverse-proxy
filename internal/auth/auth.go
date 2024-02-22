@@ -31,7 +31,7 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 		return err
 	}
 
-	cfg.Scopes = []string{"openid", "email", "roles"}
+	cfg.Scopes = []string{"openid", "email", "roles", "profile"}
 
 	oauth2Config := oauth2.Config{
 		ClientID:     cfg.ClientID,
@@ -84,13 +84,16 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 		Name:     "x-access-token",
 		Value:    oauth2Token.AccessToken,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   cfg.Secure,
 		Path:     "/",
 	}
 
 	ctx.SetCookie(cookie)
 
-	grafana.UpdateUserMapping(rawIDToken, cfg)
+	err = grafana.UpdateUserMapping(rawIDToken, cfg)
+	if err != nil {
+		l.Error(err)
+	}
 
 	return ctx.Redirect(302, cfg.RedirectGrafanaURL)
 }
@@ -109,7 +112,7 @@ func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) er
 		return err
 	}
 
-	cfg.Scopes = []string{"openid", "email", "roles"}
+	cfg.Scopes = []string{"openid", "email", "roles", "profile"}
 
 	oauth2Config := oauth2.Config{
 		ClientID:     cfg.ClientID,

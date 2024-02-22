@@ -2,7 +2,7 @@ package config
 
 import (
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
+	"os"
 )
 
 // Config holds all the configuration for the application
@@ -19,8 +19,10 @@ type Config struct {
 	RedirectGrafanaURL    string
 	ProxyTarget           string
 	Port                  string
+	Secure                bool
 	AccessTokenCookieName string
 	OrgAttributePath      string
+	MappingConfigFile     string
 }
 
 type OrgMappingConfig struct {
@@ -34,7 +36,7 @@ type OrgMapping struct {
 }
 
 func LoadOrgMappingConfig(filename string) (*OrgMappingConfig, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
