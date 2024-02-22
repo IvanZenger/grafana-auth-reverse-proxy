@@ -2,7 +2,9 @@ package utlis
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 )
 
 func ConstructURL(host, uri string) (string, error) {
@@ -30,4 +32,20 @@ func ConstructURL(host, uri string) (string, error) {
 	}
 
 	return fullURL.String(), nil
+}
+func GetTokenFromRequest(req *http.Request, cookieName string) (string, error) {
+	authHeader := req.Header.Get("Authorization")
+	if authHeader != "" {
+		splitToken := strings.Split(authHeader, "Bearer ")
+		if len(splitToken) == 2 {
+			return splitToken[1], nil
+		}
+	}
+
+	cookie, err := req.Cookie(cookieName)
+	if err == nil {
+		return cookie.Value, nil
+	}
+
+	return "", fmt.Errorf("no token found")
 }

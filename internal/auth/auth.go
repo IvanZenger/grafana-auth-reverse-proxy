@@ -8,6 +8,8 @@ import (
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/grafana"
+	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/jwks"
+	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/utlis"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -124,6 +126,18 @@ func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) er
 	l.Debugw(oauth2Config.Endpoint.AuthURL)
 	l.Debugw(oauth2Config.Endpoint.TokenURL)
 	l.Debugw(oauth2Config.Endpoint.DeviceAuthURL)
-	http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)
-	return err
+
+	jwtTokenString, err := utlis.GetTokenFromRequest(ctx.Request(), cfg.AccessTokenCookieName)
+	if err != nil {
+		http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)
+		return err
+	}
+
+	_, err = jwks.ParseJWTToken(jwtTokenString, cfg.JwksUrl)
+	if err != nil {
+		http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)
+		return err
+	}
+
+	return ctx.JSON(200, "Is Authenticated")
 }
