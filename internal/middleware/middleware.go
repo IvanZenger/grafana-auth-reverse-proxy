@@ -38,6 +38,7 @@ func CheckAccessToken(cfg *config.Config, l *zap.SugaredLogger) echo.MiddlewareF
 			}
 
 			if extractedToken == "" {
+				l.Debug("redirecting to auth")
 				return c.Redirect(http.StatusFound, cfg.AuthEndpoint)
 			}
 

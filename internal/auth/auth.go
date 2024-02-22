@@ -129,15 +129,18 @@ func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) er
 
 	jwtTokenString, err := utlis.GetTokenFromRequest(ctx.Request(), cfg.AccessTokenCookieName)
 	if err != nil {
+		l.Debug("could not extract jwtTokenString", err)
 		http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)
 		return err
 	}
 
 	_, err = jwks.ParseJWTToken(jwtTokenString, cfg.JwksUrl)
 	if err != nil {
+		l.Debug("invalid token", err)
 		http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)
 		return err
 	}
 
+	l.Debug("is Authenitcated")
 	return ctx.JSON(200, "Is Authenticated")
 }
