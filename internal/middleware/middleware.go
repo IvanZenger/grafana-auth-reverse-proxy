@@ -32,13 +32,12 @@ func CheckAccessToken(cfg *config.Config, l *zap.SugaredLogger) echo.MiddlewareF
 			if extractedToken == "" {
 				cookie, err := c.Cookie(cfg.AccessTokenCookieName)
 				if err == nil {
-					l.Debugw("Access token cookie missing or invalid", "path", urlPath, "error", err)
 					extractedToken = cookie.Value
 				}
 			}
 
 			if extractedToken == "" {
-				l.Debug("redirecting to auth")
+				l.Debugw("Access token cookie missing or invalid", "path", urlPath, "error")
 				return c.Redirect(http.StatusFound, cfg.AuthEndpoint)
 			}
 
