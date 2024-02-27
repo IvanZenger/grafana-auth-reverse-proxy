@@ -33,6 +33,11 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 		req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
 		req.Host = targetURL.Host
 
+		proxy.ModifyResponse = func(r *http.Response) error {
+			r.Request.Host = r.Request.URL.Host
+			return nil
+		}
+
 		token, err := getTokenFromRequest(req, cfg.AccessTokenCookieName)
 		if err != nil {
 			l.Debugw("Failed to get token", "error", err)
