@@ -96,7 +96,7 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 		l.Error(err)
 	}
 
-	return ctx.Redirect(302, cfg.RootUrl)
+	return ctx.Redirect(302, cfg.RootUrl+"/login")
 }
 
 func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error {
