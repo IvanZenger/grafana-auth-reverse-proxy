@@ -91,6 +91,8 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 
 	ctx.SetCookie(cookie)
 
+	l.Debug(rawIDToken)
+
 	err = grafana.UpdateUserMapping(rawIDToken, cfg)
 	if err != nil {
 		l.Error(err)
