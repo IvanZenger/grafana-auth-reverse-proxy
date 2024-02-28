@@ -50,8 +50,8 @@ type Proxy struct {
 type Grafana struct {
 	OrgAttributePath               string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
 	MappingConfigFile              string `env:"MAPPING_CONFIG_FILE" default:"./testdata/mapping.yml"`
-	SyncLoginOrEmailClaimAttribute string `env:"SYNC_NAME_CLAIM_ATTRIBUTE" default:"preferred_username"`
-	SyncEmailClaimAttribute        string `env:"SYNC_NAME_CLAIM_ATTRIBUTE" default:"email"`
+	SyncLoginOrEmailClaimAttribute string `env:"SYNC_LOGIN_OR_EMAIL_CLAIM_ATTRIBUTE" default:"preferred_username"`
+	SyncEmailClaimAttribute        string `env:"SYNC_EMAIL_CLAIM_ATTRIBUTE" default:"email"`
 	SyncNameClaimAttribute         string `env:"SYNC_NAME_CLAIM_ATTRIBUTE" default:"name"`
 }
 
