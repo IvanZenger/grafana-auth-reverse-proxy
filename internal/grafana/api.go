@@ -182,11 +182,9 @@ func addUserToOrg(orgId int, loginOrEmail, role, host string, cfg *config.Config
 }
 
 func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool, cfg *config.Config) error {
-	if gAdmin {
-		err := syncUserRoleGrafanaAdmin(host, userId, cfg)
-		if err != nil {
-			return err
-		}
+	err := syncUserRoleGrafanaAdmin(host, userId, gAdmin, cfg)
+	if err != nil {
+		return err
 	}
 
 	if role != "" {
@@ -199,10 +197,10 @@ func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool, cfg 
 	return nil
 }
 
-func syncUserRoleGrafanaAdmin(host string, userId int, cfg *config.Config) error {
+func syncUserRoleGrafanaAdmin(host string, userId int, gAdmin bool, cfg *config.Config) error {
 	uri := fmt.Sprintf("/api/admin/users/%d/permissions", userId)
 
-	requestBody, err := json.Marshal(map[string]bool{"isGrafanaAdmin": true})
+	requestBody, err := json.Marshal(map[string]bool{"isGrafanaAdmin": gAdmin})
 	if err != nil {
 		return fmt.Errorf("error marshaling request body: %w", err)
 	}
