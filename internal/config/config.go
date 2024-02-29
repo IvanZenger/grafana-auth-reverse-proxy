@@ -21,6 +21,7 @@ type Config struct {
 	Port                           string
 	Secure                         bool
 	RootUrl                        string
+	SleepBeforeRedirect            int
 	BasePath                       string
 	AccessTokenCookieName          string
 	OrgAttributePath               string

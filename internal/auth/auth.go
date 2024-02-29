@@ -107,7 +107,7 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 		l.Errorw("Failed to update User Role", "error", err)
 	}
 
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * time.Duration(cfg.SleepBeforeRedirect))
 
 	return ctx.Redirect(302, cfg.RootUrl+"/login")
 }

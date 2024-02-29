@@ -22,11 +22,12 @@ type Run struct {
 }
 
 type Server struct {
-	CallbackEndpoint string `env:"CALLBACK_ENDPOINT" default:"/callback"`
-	AuthEndpoint     string `env:"AUTH_ENDPOINT" default:"/auth"`
-	Port             string `env:"PORT" default:"8082"`
-	Secure           bool   `env:"SECURE" default:"true"`
-	RootUrl          string `env:"ROOT_URL" default:"http://e1-zengeriv-alsu001:8082/"`
+	CallbackEndpoint    string `env:"CALLBACK_ENDPOINT" default:"/callback"`
+	AuthEndpoint        string `env:"AUTH_ENDPOINT" default:"/auth"`
+	Port                string `env:"PORT" default:"8082"`
+	Secure              bool   `env:"SECURE" default:"true"`
+	RootUrl             string `env:"ROOT_URL" default:"http://e1-zengeriv-alsu001:8082/"`
+	SleepBeforeRedirect int    `env:"SLEEP_BEFORE_REDIRECT" default:"1"`
 }
 
 type TokenConfig struct {
@@ -86,6 +87,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		Port:                           r.Port,
 		Secure:                         r.Secure,
 		RootUrl:                        r.RootUrl,
+		SleepBeforeRedirect:            r.SleepBeforeRedirect,
 		BasePath:                       basePath,
 		AccessTokenCookieName:          r.AccessTokenCookieName,
 		OrgAttributePath:               r.OrgAttributePath,
