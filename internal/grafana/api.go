@@ -200,14 +200,14 @@ func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool, cfg 
 }
 
 func syncUserRoleGrafanaAdmin(host string, userId int, cfg *config.Config) error {
-	uri := fmt.Sprintf("/api/admin/users/%d", userId)
+	uri := fmt.Sprintf("/api/admin/users/%d/permissions", userId)
 
 	requestBody, err := json.Marshal(map[string]bool{"isGrafanaAdmin": true})
 	if err != nil {
 		return fmt.Errorf("error marshaling request body: %w", err)
 	}
 
-	resp, err := RequestWithBody(http.MethodPatch, host, uri, true, requestBody, cfg)
+	resp, err := RequestWithBody(http.MethodPut, host, uri, true, requestBody, cfg)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
