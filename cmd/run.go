@@ -48,12 +48,17 @@ type Proxy struct {
 }
 
 type Grafana struct {
+	AdminUser                      string `env:"ADMIN_USER" default:"admin"`
 	OrgAttributePath               string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
 	MappingConfigFile              string `env:"MAPPING_CONFIG_FILE" default:"./testdata/mapping.yml"`
 	RoleAttributePath              string `env:"ROLE_ATTRIBUTE_PATH" default:"contains(groups[*], 'auth.strong') && 'Admin' || contains(groups[*], 'auth.strong') && 'Editor' || 'Viewer'"`
 	SyncLoginOrEmailClaimAttribute string `env:"SYNC_LOGIN_OR_EMAIL_CLAIM_ATTRIBUTE" default:"preferred_username"`
 	SyncEmailClaimAttribute        string `env:"SYNC_EMAIL_CLAIM_ATTRIBUTE" default:"email"`
 	SyncNameClaimAttribute         string `env:"SYNC_NAME_CLAIM_ATTRIBUTE" default:"name"`
+	HeaderNameLoginOrEmail         string `env:"HEADER_NAME_LOGIN_OR_EMAIL" default:"X-WEBAUTH-USER"`
+	HeaderNameName                 string `env:"HEADER_NAME_NAME" default:"X-WEBAUTH-NAME"`
+	HeaderNameEmail                string `env:"HEADER_NAME_EMAIL" default:"X-WEBAUTH-EMAIL"`
+	HeaderNameRole                 string `env:"HEADER_NAME_Role" default:"X-WEBAUTH-ROLE"`
 }
 
 func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
@@ -89,6 +94,11 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		SyncLoginOrEmailClaimAttribute: r.SyncLoginOrEmailClaimAttribute,
 		SyncEmailClaimAttribute:        r.SyncEmailClaimAttribute,
 		SyncNameClaimAttribute:         r.SyncNameClaimAttribute,
+		AdminUser:                      r.AdminUser,
+		HeaderNameLoginOrEmail:         r.HeaderNameLoginOrEmail,
+		HeaderNameName:                 r.HeaderNameName,
+		HeaderNameEmail:                r.HeaderNameEmail,
+		HeaderNameRole:                 r.HeaderNameRole,
 	}
 
 	l.Info("Starting Grafana Auth Reverse Proxy")

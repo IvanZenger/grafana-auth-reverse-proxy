@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/utlis"
-	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -20,32 +19,28 @@ type UserOrg struct {
 	Role  string `json:"role"`
 }
 
-func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.OrgMapping, l *zap.SugaredLogger) error {
-	userId, statusCode, err := getUserId(loginOrEmail, host)
+func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.OrgMapping, cfg *config.Config) error {
+	userId, statusCode, err := getUserId(loginOrEmail, host, cfg)
 	if err != nil {
 		return err
 	}
 
 	if statusCode == http.StatusNotFound {
-		userId, err = createUser(loginOrEmail, host)
+		userId, err = createUser(loginOrEmail, host, cfg)
 		if err != nil {
 			return err
 		}
 	}
 
-	userOrgs, err := getUserOrgs(userId, host)
+	userOrgs, err := getUserOrgs(userId, host, cfg)
 	if err != nil {
 		return err
 	}
 
-	l.Debug(resolvedMappings)
-
 	for _, rm := range resolvedMappings {
 		if !orgExists(userOrgs, rm.OrgID) || orgRoleDiffers(userOrgs, rm.OrgID, rm.OrgRole) {
-			l.Debugw("update", "rm", rm)
-			err := updateUserRoleInOrg(host, userId, rm.OrgID, loginOrEmail, rm.OrgRole)
+			err := updateUserRoleInOrg(host, userId, rm.OrgID, loginOrEmail, rm.OrgRole, cfg)
 			if err != nil {
-				l.Debugw("failed", err)
 				return err
 			}
 		}
@@ -54,10 +49,10 @@ func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.Org
 	return nil
 }
 
-func getUserId(loginOrEmail, host string) (int, int, error) {
+func getUserId(loginOrEmail, host string, cfg *config.Config) (int, int, error) {
 	uri := fmt.Sprintf("/api/users/lookup?loginOrEmail=%s", loginOrEmail)
 
-	resp, err := Request(http.MethodGet, host, uri, "", nil)
+	resp, err := Request(http.MethodGet, host, uri, true, nil, cfg)
 	if err != nil {
 		return 0, 0, fmt.Errorf("error making request to Grafana: %w", err)
 	}
@@ -77,8 +72,12 @@ func getUserId(loginOrEmail, host string) (int, int, error) {
 	return user.ID, resp.StatusCode, nil
 }
 
-func createUser(loginOrEmail, host string) (int, error) {
-	resp, err := Request(http.MethodGet, host, "/api/users", loginOrEmail, nil)
+func createUser(loginOrEmail, host string, cfg *config.Config) (int, error) {
+	headers := map[string]string{
+		cfg.HeaderNameLoginOrEmail: loginOrEmail,
+	}
+
+	resp, err := Request(http.MethodGet, host, "/api/users", false, headers, cfg)
 	if err != nil {
 		return 0, fmt.Errorf("error making request to Grafana: %w", err)
 	}
@@ -96,10 +95,10 @@ func createUser(loginOrEmail, host string) (int, error) {
 	return user.ID, nil
 }
 
-func getUserOrgs(userId int, host string) ([]UserOrg, error) {
+func getUserOrgs(userId int, host string, cfg *config.Config) ([]UserOrg, error) {
 	uri := fmt.Sprintf("/api/users/%d/orgs", userId)
 
-	resp, err := Request(http.MethodGet, host, uri, "", nil)
+	resp, err := Request(http.MethodGet, host, uri, true, nil, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("error making request to Grafana: %w", err)
 	}
@@ -117,7 +116,7 @@ func getUserOrgs(userId int, host string) ([]UserOrg, error) {
 	return userOrgs, nil
 }
 
-func updateOrgUser(userId, orgId int, role, host string) error {
+func updateOrgUser(userId, orgId int, role, host string, cfg *config.Config) error {
 	uri := fmt.Sprintf("/api/orgs/%d/users/%d", orgId, userId)
 
 	requestBody, err := json.Marshal(map[string]string{"role": role})
@@ -125,7 +124,7 @@ func updateOrgUser(userId, orgId int, role, host string) error {
 		return fmt.Errorf("error marshaling request body: %w", err)
 	}
 
-	resp, err := RequestWithBody(http.MethodPatch, host, uri, "", requestBody)
+	resp, err := RequestWithBody(http.MethodPatch, host, uri, true, requestBody, cfg)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
@@ -139,26 +138,26 @@ func updateOrgUser(userId, orgId int, role, host string) error {
 	return nil
 }
 
-func updateUserRoleInOrg(host string, userId, orgId int, loginOrEmail, newRole string) error {
-	userOrgs, err := getUserOrgs(userId, host)
+func updateUserRoleInOrg(host string, userId, orgId int, loginOrEmail, newRole string, cfg *config.Config) error {
+	userOrgs, err := getUserOrgs(userId, host, cfg)
 	if err != nil {
 		return fmt.Errorf("error getting user organizations: %w", err)
 	}
 
 	if orgExists(userOrgs, orgId) {
 		if orgRoleDiffers(userOrgs, orgId, newRole) {
-			return updateOrgUser(userId, orgId, newRole, host)
+			return updateOrgUser(userId, orgId, newRole, host, cfg)
 		}
 		return nil
 	} else {
-		if err := addUserToOrg(orgId, loginOrEmail, newRole, host); err != nil {
+		if err := addUserToOrg(orgId, loginOrEmail, newRole, host, cfg); err != nil {
 			return fmt.Errorf("error adding user to organization: %w", err)
 		}
-		return updateOrgUser(userId, orgId, newRole, host)
+		return updateOrgUser(userId, orgId, newRole, host, cfg)
 	}
 }
 
-func addUserToOrg(orgId int, loginOrEmail, role, host string) error {
+func addUserToOrg(orgId int, loginOrEmail, role, host string, cfg *config.Config) error {
 	uri := fmt.Sprintf("/api/orgs/%d/users", orgId)
 
 	requestBody, err := json.Marshal(map[string]interface{}{
@@ -169,7 +168,7 @@ func addUserToOrg(orgId int, loginOrEmail, role, host string) error {
 		return fmt.Errorf("error marshaling request body: %w", err)
 	}
 
-	resp, err := RequestWithBody(http.MethodPost, host, uri, "", requestBody)
+	resp, err := RequestWithBody(http.MethodPost, host, uri, true, requestBody, cfg)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
@@ -182,7 +181,7 @@ func addUserToOrg(orgId int, loginOrEmail, role, host string) error {
 	return nil
 }
 
-func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool) error {
+func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool, cfg *config.Config) error {
 	uri := fmt.Sprintf("/api/users/%s", userId)
 
 	if gAdmin {
@@ -191,7 +190,7 @@ func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool) erro
 			return fmt.Errorf("error marshaling request body: %w", err)
 		}
 
-		resp, err := RequestWithBody(http.MethodPatch, host, uri, "", requestBody)
+		resp, err := RequestWithBody(http.MethodPatch, host, uri, true, requestBody, cfg)
 		if err != nil {
 			return fmt.Errorf("error creating request: %w", err)
 		}
@@ -204,7 +203,7 @@ func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool) erro
 	}
 
 	if role != "" {
-		err := syncUserRoleWithExternalAuth(host, loginOrEmail, role)
+		err := syncUserRoleWithExternalAuth(host, loginOrEmail, role, cfg)
 		if err != nil {
 			return err
 		}
@@ -213,12 +212,13 @@ func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool) erro
 	return nil
 }
 
-func syncUserRoleWithExternalAuth(host, loginOrEmail, role string) error {
+func syncUserRoleWithExternalAuth(host, loginOrEmail, role string, cfg *config.Config) error {
 	headers := map[string]string{
-		"X-WEBAUTH-Role": role,
+		cfg.HeaderNameRole:         role,
+		cfg.HeaderNameLoginOrEmail: loginOrEmail,
 	}
 
-	resp, err := Request(http.MethodGet, host, "/api/user", loginOrEmail, headers)
+	resp, err := Request(http.MethodGet, host, "/api/user", false, headers, cfg)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
@@ -235,13 +235,14 @@ func syncUserRoleWithExternalAuth(host, loginOrEmail, role string) error {
 	return nil
 }
 
-func syncUserInfoWithExternalAuth(host, loginOrEmail, name, email string) error {
+func syncUserInfoWithExternalAuth(host, loginOrEmail, name, email string, cfg *config.Config) error {
 	headers := map[string]string{
-		"X-WEBAUTH-NAME":  name,
-		"X-WEBAUTH-EMAIL": email,
+		cfg.HeaderNameName:         name,
+		cfg.HeaderNameEmail:        email,
+		cfg.HeaderNameLoginOrEmail: loginOrEmail,
 	}
 
-	resp, err := Request(http.MethodGet, host, "/api/user", loginOrEmail, headers)
+	resp, err := Request(http.MethodGet, host, "/api/user", false, headers, cfg)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
@@ -272,10 +273,10 @@ func orgRoleDiffers(orgs []UserOrg, orgId int, role string) bool {
 			return org.Role != role
 		}
 	}
-	return false // Consider returning true or false based on how you want to handle orgs not found
+	return false
 }
 
-func Request(method, host, uri, loginOrUser string, extraHeaders map[string]string) (*http.Response, error) {
+func Request(method, host, uri string, useAdmin bool, extraHeaders map[string]string, cfg *config.Config) (*http.Response, error) {
 	client := http.Client{}
 
 	url, err := utlis.ConstructURL(host, uri)
@@ -288,13 +289,10 @@ func Request(method, host, uri, loginOrUser string, extraHeaders map[string]stri
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	if loginOrUser == "" {
-		req.Header.Add("X-WEBAUTH-USER", "admin")
-	} else {
-		req.Header.Add("X-WEBAUTH-USER", loginOrUser)
+	if useAdmin {
+		req.Header.Add(cfg.HeaderNameLoginOrEmail, cfg.AdminUser)
 	}
 
-	// Set additional headers
 	for key, value := range extraHeaders {
 		req.Header.Add(key, value)
 	}
@@ -307,7 +305,7 @@ func Request(method, host, uri, loginOrUser string, extraHeaders map[string]stri
 	return resp, nil
 }
 
-func RequestWithBody(method, host, uri, authUser string, requestBody []byte) (*http.Response, error) {
+func RequestWithBody(method, host, uri string, useAdmin bool, requestBody []byte, cfg *config.Config) (*http.Response, error) {
 	client := http.Client{}
 
 	url, err := utlis.ConstructURL(host, uri)
@@ -320,10 +318,8 @@ func RequestWithBody(method, host, uri, authUser string, requestBody []byte) (*h
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	if authUser == "" {
-		req.Header.Add("X-WEBAUTH-USER", "admin")
-	} else {
-		req.Header.Add("X-WEBAUTH-USER", authUser)
+	if useAdmin {
+		req.Header.Add(cfg.HeaderNameLoginOrEmail, cfg.AdminUser)
 	}
 
 	req.Header.Set("Content-Type", "application/json")

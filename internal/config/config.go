@@ -29,6 +29,11 @@ type Config struct {
 	SyncLoginOrEmailClaimAttribute string
 	SyncEmailClaimAttribute        string
 	SyncNameClaimAttribute         string
+	AdminUser                      string
+	HeaderNameLoginOrEmail         string
+	HeaderNameName                 string
+	HeaderNameEmail                string
+	HeaderNameRole                 string
 }
 
 type OrgMappingConfig struct {
@@ -81,8 +86,14 @@ func (cfg *Config) LogConfig(l *zap.SugaredLogger) {
 	l.Infow("Grafana Configuration",
 		"OrgAttributePath", cfg.OrgAttributePath,
 		"MappingConfigFile", cfg.MappingConfigFile,
+		"RoleAttributePath", cfg.RoleAttributePath,
 		"SyncLoginOrEmailClaimAttribute", cfg.SyncLoginOrEmailClaimAttribute,
 		"SyncEmailClaimAttribute", cfg.SyncEmailClaimAttribute,
 		"SyncNameClaimAttribute", cfg.SyncNameClaimAttribute,
+		"AdminUser", cfg.AdminUser,
+		"HeaderNameLoginOrEmail", cfg.HeaderNameLoginOrEmail,
+		"HeaderNameName", cfg.HeaderNameName,
+		"HeaderNameEmail", cfg.HeaderNameEmail,
+		"HeaderNameRole", cfg.HeaderNameRole,
 	)
 }

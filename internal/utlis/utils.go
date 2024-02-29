@@ -2,6 +2,7 @@ package utlis
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"strings"
@@ -33,21 +34,23 @@ func ConstructURL(host, uri string) (string, error) {
 
 	return fullURL.String(), nil
 }
-func GetTokenFromRequest(req *http.Request, cookieName string) (string, error) {
+func GetTokenFromRequest(req *http.Request, cookieName string, l *zap.SugaredLogger) (string, error) {
 	authHeader := req.Header.Get("Authorization")
 	if authHeader != "" {
 		splitToken := strings.Split(authHeader, "Bearer ")
 		if len(splitToken) == 2 {
 			return splitToken[1], nil
 		}
-	} else {
-		fmt.Println("Auth Header is empty")
 	}
+
+	l.Debugw("Auth", "GetTokenFromRequest", "No Token Found in Authorization Header")
 
 	cookie, err := req.Cookie(cookieName)
 	if err == nil {
 		return cookie.Value, nil
 	}
+
+	l.Debugw("Auth", "GetTokenFromRequest", "No Cookie Found in With Token")
 
 	return "", fmt.Errorf("no token found")
 }

@@ -91,9 +91,7 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 
 	ctx.SetCookie(cookie)
 
-	l.Debug(rawIDToken)
-
-	err = grafana.UpdateUserMapping(rawIDToken, cfg, l)
+	err = grafana.UpdateUserMapping(rawIDToken, cfg)
 	if err != nil {
 		l.Errorw("Failed to update User Organsiation Mapping", "error", err)
 	}
@@ -136,11 +134,7 @@ func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) er
 	authURL := oauth2Config.AuthCodeURL(state)
 	l.Debugw("Redirecting to OIDC provider", "url", authURL)
 
-	l.Debugw(oauth2Config.Endpoint.AuthURL)
-	l.Debugw(oauth2Config.Endpoint.TokenURL)
-	l.Debugw(oauth2Config.Endpoint.DeviceAuthURL)
-
-	jwtTokenString, err := utlis.GetTokenFromRequest(ctx.Request(), cfg.AccessTokenCookieName)
+	jwtTokenString, err := utlis.GetTokenFromRequest(ctx.Request(), cfg.AccessTokenCookieName, l)
 	if err != nil {
 		l.Debug("could not extract jwtTokenString", err)
 		http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)

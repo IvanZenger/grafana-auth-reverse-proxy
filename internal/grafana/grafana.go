@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/jwks"
-	"go.uber.org/zap"
 )
 
-func UpdateUserMapping(idToken string, cfg *config.Config, l *zap.SugaredLogger) error {
-	l.Debug("UpdateUserMapping")
+func UpdateUserMapping(idToken string, cfg *config.Config) error {
 	mappings, err := config.LoadOrgMappingConfig(cfg.MappingConfigFile)
 	if err != nil {
 		return err
@@ -32,9 +30,7 @@ func UpdateUserMapping(idToken string, cfg *config.Config, l *zap.SugaredLogger)
 
 	resolvedMappings := resolveMappings(groups, mappings.OrgMappings)
 
-	l.Debug(resolvedMappings)
-
-	return updateUserOrgRoles(loginOrEmail, cfg.ProxyTarget, resolvedMappings, l)
+	return updateUserOrgRoles(loginOrEmail, cfg.ProxyTarget, resolvedMappings, cfg)
 }
 
 func UpdateRole(idToken string, cfg *config.Config) error {
@@ -58,7 +54,7 @@ func UpdateRole(idToken string, cfg *config.Config) error {
 		return err
 	}
 
-	userId, _, err := getUserId(loginOrEmail, cfg.ProxyTarget)
+	userId, _, err := getUserId(loginOrEmail, cfg.ProxyTarget, cfg)
 	if err != nil {
 		return err
 	}
@@ -66,12 +62,12 @@ func UpdateRole(idToken string, cfg *config.Config) error {
 	if result != "" {
 		isGrafanaAdmin := false
 
-		if result == "GrafanaAdmin" {
-			result = "Admin"
+		if result == RoleGrafanaAdmin {
+			result = RoleAdmin
 			isGrafanaAdmin = true
 		}
 
-		return syncUserRole(cfg.ProxyTarget, loginOrEmail, result.(string), userId, isGrafanaAdmin)
+		return syncUserRole(cfg.ProxyTarget, loginOrEmail, result.(string), userId, isGrafanaAdmin, cfg)
 	}
 
 	return err
@@ -97,5 +93,5 @@ func UpdateUserInfo(idToken string, cfg *config.Config) error {
 		return err
 	}
 
-	return syncUserInfoWithExternalAuth(cfg.ProxyTarget, loginOrEmail, name, email)
+	return syncUserInfoWithExternalAuth(cfg.ProxyTarget, loginOrEmail, name, email, cfg)
 }

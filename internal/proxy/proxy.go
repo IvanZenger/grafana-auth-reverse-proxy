@@ -59,7 +59,7 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 
 		if loginOrEmail != "" {
 			l.Debugw("Extracted loginOrEmail", "loginOrEmail", loginOrEmail)
-			req.Header.Set("X-WEBAUTH-USER", loginOrEmail)
+			req.Header.Set(cfg.HeaderNameLoginOrEmail, loginOrEmail)
 		}
 
 		proxy.ServeHTTP(res, req)

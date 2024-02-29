@@ -11,31 +11,26 @@ import (
 
 // ExtractGroupsFromToken extracts groups from id_token using JMESPath
 func ExtractGroupsFromToken(idToken, attributePath string) ([]string, error) {
-	// First, parse the JWT token
 	token, _, err := new(jwt.Parser).ParseUnverified(idToken, jwt.MapClaims{})
 	if err != nil {
 		return nil, fmt.Errorf("error parsing id_token: %w", err)
 	}
 
-	// Extract claims
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, errors.New("error asserting claims from id_token")
 	}
 
-	// Convert claims to JSON
 	claimsJSON, err := json.Marshal(claims)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling claims to JSON: %w", err)
 	}
 
-	// Use searchJSONForAttr to find the attribute
 	result, err := searchJSONForAttr(attributePath, claimsJSON)
 	if err != nil {
 		return nil, err
 	}
 
-	// Ensure the result is a slice of strings
 	groups, ok := result.([]interface{})
 	if !ok {
 		return nil, errors.New("extracted data is not a slice of strings")
