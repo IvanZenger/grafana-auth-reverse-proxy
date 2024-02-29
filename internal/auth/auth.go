@@ -93,7 +93,7 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 
 	l.Debug(rawIDToken)
 
-	err = grafana.UpdateUserMapping(rawIDToken, cfg)
+	err = grafana.UpdateUserMapping(rawIDToken, cfg, l)
 	if err != nil {
 		l.Errorw("Failed to update User Organsiation Mapping", "error", err)
 	}

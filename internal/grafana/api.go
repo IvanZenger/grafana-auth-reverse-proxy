@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/utlis"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -19,7 +20,7 @@ type UserOrg struct {
 	Role  string `json:"role"`
 }
 
-func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.OrgMapping) error {
+func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.OrgMapping, l *zap.SugaredLogger) error {
 	userId, statusCode, err := getUserId(loginOrEmail, host)
 	if err != nil {
 		return err
@@ -37,10 +38,14 @@ func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.Org
 		return err
 	}
 
+	l.Debug(resolvedMappings)
+
 	for _, rm := range resolvedMappings {
 		if !orgExists(userOrgs, rm.OrgID) || orgRoleDiffers(userOrgs, rm.OrgID, rm.OrgRole) {
+			l.Debugw("update", "rm", rm)
 			err := updateUserRoleInOrg(host, userId, rm.OrgID, loginOrEmail, rm.OrgRole)
 			if err != nil {
+				l.Debugw("failed", err)
 				return err
 			}
 		}

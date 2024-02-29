@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/jwks"
+	"go.uber.org/zap"
 )
 
-func UpdateUserMapping(idToken string, cfg *config.Config) error {
+func UpdateUserMapping(idToken string, cfg *config.Config, l *zap.SugaredLogger) error {
+	l.Debug("UpdateUserMapping")
 	mappings, err := config.LoadOrgMappingConfig(cfg.MappingConfigFile)
 	if err != nil {
 		return err
@@ -29,7 +31,10 @@ func UpdateUserMapping(idToken string, cfg *config.Config) error {
 	}
 
 	resolvedMappings := resolveMappings(groups, mappings.OrgMappings)
-	return updateUserOrgRoles(loginOrEmail, cfg.ProxyTarget, resolvedMappings)
+
+	l.Debug(resolvedMappings)
+
+	return updateUserOrgRoles(loginOrEmail, cfg.ProxyTarget, resolvedMappings, l)
 }
 
 func UpdateRole(idToken string, cfg *config.Config) error {
