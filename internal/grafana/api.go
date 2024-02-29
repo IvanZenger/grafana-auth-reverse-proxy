@@ -182,23 +182,10 @@ func addUserToOrg(orgId int, loginOrEmail, role, host string, cfg *config.Config
 }
 
 func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool, cfg *config.Config) error {
-	uri := fmt.Sprintf("/api/users/%d", userId)
-
 	if gAdmin {
-		requestBody, err := json.Marshal(map[string]bool{"isGrafanaAdmin": true})
+		err := syncUserRoleGrafanaAdmin(host, userId, cfg)
 		if err != nil {
-			return fmt.Errorf("error marshaling request body: %w", err)
-		}
-
-		resp, err := RequestWithBody(http.MethodPatch, host, uri, true, requestBody, cfg)
-		if err != nil {
-			return fmt.Errorf("error creating request: %w", err)
-		}
-
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("Grafana API returned non-OK status: %d", resp.StatusCode)
+			return err
 		}
 	}
 
@@ -212,6 +199,27 @@ func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool, cfg 
 	return nil
 }
 
+func syncUserRoleGrafanaAdmin(host string, userId int, cfg *config.Config) error {
+	uri := fmt.Sprintf("/api/users/%d", userId)
+
+	requestBody, err := json.Marshal(map[string]bool{"isGrafanaAdmin": true})
+	if err != nil {
+		return fmt.Errorf("error marshaling request body: %w", err)
+	}
+
+	resp, err := RequestWithBody(http.MethodPatch, host, uri, true, requestBody, cfg)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Grafana API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	return nil
+}
 func syncUserRoleWithExternalAuth(host, loginOrEmail, role string, cfg *config.Config) error {
 	headers := map[string]string{
 		cfg.HeaderNameRole:         role,
