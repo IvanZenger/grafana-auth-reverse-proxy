@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"net/http"
+	"time"
 )
 
 func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
@@ -105,6 +106,8 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 	if err != nil {
 		l.Errorw("Failed to update User Role", "error", err)
 	}
+
+	time.Sleep(time.Second * 10)
 
 	return ctx.Redirect(302, cfg.RootUrl+"/login")
 }
