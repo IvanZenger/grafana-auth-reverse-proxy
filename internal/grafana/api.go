@@ -200,7 +200,7 @@ func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool, cfg 
 }
 
 func syncUserRoleGrafanaAdmin(host string, userId int, cfg *config.Config) error {
-	uri := fmt.Sprintf("/api/users/%d", userId)
+	uri := fmt.Sprintf("/api/admin/users/%d", userId)
 
 	requestBody, err := json.Marshal(map[string]bool{"isGrafanaAdmin": true})
 	if err != nil {
