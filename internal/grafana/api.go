@@ -182,7 +182,7 @@ func addUserToOrg(orgId int, loginOrEmail, role, host string, cfg *config.Config
 }
 
 func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool, cfg *config.Config) error {
-	uri := fmt.Sprintf("/api/users/%s", userId)
+	uri := fmt.Sprintf("/api/users/%d", userId)
 
 	if gAdmin {
 		requestBody, err := json.Marshal(map[string]bool{"isGrafanaAdmin": true})
