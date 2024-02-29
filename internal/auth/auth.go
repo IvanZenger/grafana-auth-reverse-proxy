@@ -95,7 +95,17 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 
 	err = grafana.UpdateUserMapping(rawIDToken, cfg)
 	if err != nil {
-		l.Error(err)
+		l.Errorw("Failed to update User Organsiation Mapping", "error", err)
+	}
+
+	err = grafana.UpdateUserInfo(rawIDToken, cfg)
+	if err != nil {
+		l.Errorw("Failed to update User Infos", "error", err)
+	}
+
+	err = grafana.UpdateRole(rawIDToken, cfg)
+	if err != nil {
+		l.Errorw("Failed to update User Role", "error", err)
 	}
 
 	return ctx.Redirect(302, cfg.RootUrl+"/login")

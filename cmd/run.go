@@ -50,6 +50,7 @@ type Proxy struct {
 type Grafana struct {
 	OrgAttributePath               string `env:"ORG_ATTRIBUTE_PATH" default:"groups"`
 	MappingConfigFile              string `env:"MAPPING_CONFIG_FILE" default:"./testdata/mapping.yml"`
+	RoleAttributePath              string `env:"ROLE_ATTRIBUTE_PATH" default:"contains(groups[*], 'auth.strong') && 'Admin' || contains(groups[*], 'auth.strong') && 'Editor' || 'Viewer'"`
 	SyncLoginOrEmailClaimAttribute string `env:"SYNC_LOGIN_OR_EMAIL_CLAIM_ATTRIBUTE" default:"preferred_username"`
 	SyncEmailClaimAttribute        string `env:"SYNC_EMAIL_CLAIM_ATTRIBUTE" default:"email"`
 	SyncNameClaimAttribute         string `env:"SYNC_NAME_CLAIM_ATTRIBUTE" default:"name"`
@@ -84,6 +85,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		AccessTokenCookieName:          r.AccessTokenCookieName,
 		OrgAttributePath:               r.OrgAttributePath,
 		MappingConfigFile:              r.MappingConfigFile,
+		RoleAttributePath:              r.RoleAttributePath,
 		SyncLoginOrEmailClaimAttribute: r.SyncLoginOrEmailClaimAttribute,
 		SyncEmailClaimAttribute:        r.SyncEmailClaimAttribute,
 		SyncNameClaimAttribute:         r.SyncNameClaimAttribute,

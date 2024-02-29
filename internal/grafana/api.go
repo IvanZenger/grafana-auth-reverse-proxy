@@ -52,7 +52,7 @@ func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.Org
 func getUserId(loginOrEmail, host string) (int, int, error) {
 	uri := fmt.Sprintf("/api/users/lookup?loginOrEmail=%s", loginOrEmail)
 
-	resp, err := Request(http.MethodGet, host, uri, "")
+	resp, err := Request(http.MethodGet, host, uri, "", nil)
 	if err != nil {
 		return 0, 0, fmt.Errorf("error making request to Grafana: %w", err)
 	}
@@ -73,7 +73,7 @@ func getUserId(loginOrEmail, host string) (int, int, error) {
 }
 
 func createUser(loginOrEmail, host string) (int, error) {
-	resp, err := Request(http.MethodGet, host, "/api/users", loginOrEmail)
+	resp, err := Request(http.MethodGet, host, "/api/users", loginOrEmail, nil)
 	if err != nil {
 		return 0, fmt.Errorf("error making request to Grafana: %w", err)
 	}
@@ -94,7 +94,7 @@ func createUser(loginOrEmail, host string) (int, error) {
 func getUserOrgs(userId int, host string) ([]UserOrg, error) {
 	uri := fmt.Sprintf("/api/users/%d/orgs", userId)
 
-	resp, err := Request(http.MethodGet, host, uri, "")
+	resp, err := Request(http.MethodGet, host, uri, "", nil)
 	if err != nil {
 		return nil, fmt.Errorf("error making request to Grafana: %w", err)
 	}
@@ -177,6 +177,82 @@ func addUserToOrg(orgId int, loginOrEmail, role, host string) error {
 	return nil
 }
 
+func syncUserRole(host, loginOrEmail, role string, userId int, gAdmin bool) error {
+	uri := fmt.Sprintf("/api/users/%s", userId)
+
+	if gAdmin {
+		requestBody, err := json.Marshal(map[string]bool{"isGrafanaAdmin": true})
+		if err != nil {
+			return fmt.Errorf("error marshaling request body: %w", err)
+		}
+
+		resp, err := RequestWithBody(http.MethodPatch, host, uri, "", requestBody)
+		if err != nil {
+			return fmt.Errorf("error creating request: %w", err)
+		}
+
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("Grafana API returned non-OK status: %d", resp.StatusCode)
+		}
+	}
+
+	if role != "" {
+		err := syncUserRoleWithExternalAuth(host, loginOrEmail, role)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func syncUserRoleWithExternalAuth(host, loginOrEmail, role string) error {
+	headers := map[string]string{
+		"X-WEBAUTH-Role": role,
+	}
+
+	resp, err := Request(http.MethodGet, host, "/api/user", loginOrEmail, headers)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error sending request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Grafana API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func syncUserInfoWithExternalAuth(host, loginOrEmail, name, email string) error {
+	headers := map[string]string{
+		"X-WEBAUTH-NAME":  name,
+		"X-WEBAUTH-EMAIL": email,
+	}
+
+	resp, err := Request(http.MethodGet, host, "/api/user", loginOrEmail, headers)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error sending request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Grafana API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
 func orgExists(orgs []UserOrg, orgId int) bool {
 	for _, org := range orgs {
 		if org.OrgID == orgId {
@@ -193,7 +269,8 @@ func orgRoleDiffers(orgs []UserOrg, orgId int, role string) bool {
 	}
 	return false // Consider returning true or false based on how you want to handle orgs not found
 }
-func Request(method, host, uri, authUser string) (*http.Response, error) {
+
+func Request(method, host, uri, loginOrUser string, extraHeaders map[string]string) (*http.Response, error) {
 	client := http.Client{}
 
 	url, err := utlis.ConstructURL(host, uri)
@@ -206,16 +283,16 @@ func Request(method, host, uri, authUser string) (*http.Response, error) {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	if authUser == "" {
+	if loginOrUser == "" {
 		req.Header.Add("X-WEBAUTH-USER", "admin")
 	} else {
-		req.Header.Add("X-WEBAUTH-USER", authUser)
+		req.Header.Add("X-WEBAUTH-USER", loginOrUser)
 	}
 
-	/*
-		req.Header.Add("X-WEBAUTH-USER", "grafana-auth-reverse-proxy")
-		req.Header.Add("X-WEBAUTH-ROLE", "GrafanaAdmin")
-	*/
+	// Set additional headers
+	for key, value := range extraHeaders {
+		req.Header.Add(key, value)
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {

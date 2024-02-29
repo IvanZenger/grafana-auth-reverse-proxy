@@ -57,29 +57,9 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 			return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
 
-		email, err := jwks.ExtractClaimValue(claims, cfg.SyncEmailClaimAttribute)
-		if err != nil {
-			l.Warnw("Failed to extract email from token", "error", err)
-		}
-
-		name, err := jwks.ExtractClaimValue(claims, cfg.SyncNameClaimAttribute)
-		if err != nil {
-			l.Warnw("Failed to extract name from token", "error", err)
-		}
-
 		if loginOrEmail != "" {
 			l.Debugw("Extracted loginOrEmail", "loginOrEmail", loginOrEmail)
 			req.Header.Set("X-WEBAUTH-USER", loginOrEmail)
-		}
-
-		if email != "" {
-			l.Debugw("Extracted email", "email", email)
-			req.Header.Set("X-WEBAUTH-EMAIL", email)
-		}
-
-		if name != "" {
-			l.Debugw("Extracted name", "name", name)
-			req.Header.Set("X-WEBAUTH-NAME", name)
 		}
 
 		proxy.ServeHTTP(res, req)

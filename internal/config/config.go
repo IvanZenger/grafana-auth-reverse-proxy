@@ -25,6 +25,7 @@ type Config struct {
 	AccessTokenCookieName          string
 	OrgAttributePath               string
 	MappingConfigFile              string
+	RoleAttributePath              string
 	SyncLoginOrEmailClaimAttribute string
 	SyncEmailClaimAttribute        string
 	SyncNameClaimAttribute         string
