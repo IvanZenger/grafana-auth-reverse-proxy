@@ -44,8 +44,6 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 			return c.Redirect(http.StatusFound, cfg.AuthEndpoint)
 		}
 
-		l.Debug(token)
-
 		claims, err := jwks.ParseJWTToken(token, cfg.JwksUrl)
 		if err != nil {
 			l.Error("Error parsing token:", err)
