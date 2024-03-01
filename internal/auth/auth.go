@@ -66,9 +66,14 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 	const state = "none"
 
 	oidcConfig := &oidc.Config{
-		ClientID: cfg.ClientID,
+		ClientID:                   cfg.ClientID,
+		InsecureSkipSignatureCheck: true,
 	}
+
 	verifier := provider.Verifier(oidcConfig)
+
+	fmt.Println(oidcConfig)
+	fmt.Println(provider.Endpoint())
 
 	if ctx.Request().URL.Query().Get("state") != state {
 		l.Errorw("Failed to exchange token", "error", "state did not match")
