@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/labstack/echo/v4"
-	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/auth"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/middleware"
@@ -113,14 +112,6 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 	e.Use(middleware.Log(&cfg, l))
 
 	e.Use(middleware.CheckAccessToken(&cfg, l))
-
-	e.Use(echomiddleware.CORSWithConfig(echomiddleware.CORSConfig{
-		AllowOrigins:                             []string{"*"},
-		AllowHeaders:                             []string{"content-type"},
-		AllowCredentials:                         true,
-		UnsafeWildcardOriginWithAllowCredentials: true,
-		ExposeHeaders:                            []string{"content-type"},
-	}))
 
 	proxy.Setup(e, &cfg, l)
 
