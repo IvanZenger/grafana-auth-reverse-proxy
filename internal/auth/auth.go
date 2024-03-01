@@ -6,7 +6,6 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -66,14 +65,10 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 	const state = "none"
 
 	oidcConfig := &oidc.Config{
-		ClientID:                   cfg.ClientID,
-		InsecureSkipSignatureCheck: true,
+		ClientID: cfg.ClientID,
 	}
 
 	verifier := provider.Verifier(oidcConfig)
-
-	fmt.Println(oidcConfig)
-	fmt.Println(provider.Endpoint())
 
 	if ctx.Request().URL.Query().Get("state") != state {
 		l.Errorw("Failed to exchange token", "error", "state did not match")
@@ -91,8 +86,6 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 		l.Error("No id_token field in oauth2 token")
 		return echo.NewHTTPError(http.StatusInternalServerError, "No id_token field in oauth2 token.")
 	}
-
-	fmt.Println(rawIDToken)
 
 	idToken, err := verifier.Verify(c, rawIDToken)
 	if err != nil {
