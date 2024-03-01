@@ -104,6 +104,8 @@ func getPemCertFromJWKS(jwksURL string, token *jwt.Token) (string, error) {
 		Timeout: time.Second * 10,
 	}
 
+	fmt.Println(jwksURL)
+
 	resp, err := client.Get(jwksURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch JWKS: %w", err)
@@ -115,7 +117,15 @@ func getPemCertFromJWKS(jwksURL string, token *jwt.Token) (string, error) {
 		return "", fmt.Errorf("failed to decode JWKS: %w", err)
 	}
 
+	fmt.Println(jwks)
+
+	for _, key := range jwks.Keys {
+		fmt.Println(key)
+	}
+
+	fmt.Println("token")
 	kid, ok := token.Header["kid"].(string)
+	fmt.Println("token", kid)
 	if !ok {
 		return "", fmt.Errorf("token 'kid' header is missing or not a string")
 	}
