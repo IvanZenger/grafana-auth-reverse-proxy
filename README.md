@@ -50,11 +50,13 @@ Start the application with the configured environment variables:
 ### Global Command Arguments
 <details> 
 <summary>Click to expand</summary>
+
 | Command Line Flag | Environment Variable | Description | Default Value | Required |
 | ----------------- | -------------------- | ----------- | ------------- | -------- |
 | (No direct flag for `Run`) | (No direct ENV for `Run`) | Start the Grafana Auth Reverse Proxy server with the specified configurations. | (Not applicable) | No |
 | --debug | GLOBALS_DEBUG | Set debug log level. | `false` | No |
 | --version | GLOBALS_VERSION | Show version information and exit. | (Not applicable) | No |
+
 </details>
 
 ### `./grafana-auth-reverse-proxy run`
