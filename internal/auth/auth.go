@@ -6,6 +6,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -85,6 +86,8 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 		l.Error("No id_token field in oauth2 token")
 		return echo.NewHTTPError(http.StatusInternalServerError, "No id_token field in oauth2 token.")
 	}
+
+	fmt.Println(rawIDToken)
 
 	idToken, err := verifier.Verify(c, rawIDToken)
 	if err != nil {
