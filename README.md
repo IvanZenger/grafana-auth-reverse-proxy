@@ -1,93 +1,159 @@
-# grafana-auth-reverse-proxy
 
+# Grafana Auth Reverse Proxy
 
+## Overview
+Grafana Auth Reverse Proxy is a tool designed to enhance the authentication and authorization mechanisms of Grafana. It integrates OpenID Connect (OIDC) for authentication and manages user access and roles within Grafana based on JWT tokens. This proxy serves as a secure gateway, controlling access to Grafana dashboards and data.
 
-## Getting started
+## Features
+- **OIDC Authentication**: Integrates with OIDC providers for secure user authentication.
+- **Reverse Proxy Functionality**: Forwards requests to Grafana, adding enhanced authentication and authorization.
+- **Grafana User and Organization Synchronization**: Syncs user and organization data between OIDC and Grafana.
+- **Environment Variable Configuration**: Offers flexible configuration through environment variables.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Getting Started
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Prerequisites
+- Go (version 1.x or later)
+- Basic understanding of OIDC
+- Grafana instance for integration
 
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
+### Installation
+Clone the repository:
+```bash
+git clone https://gitlab.pnet.ch/zengeriv/grafana-auth-reverse-proxy.git
 ```
-cd existing_repo
-git remote add origin https://gitlab.pnet.ch/zengeriv/grafana-auth-reverse-proxy.git
-git branch -M main
-git push -uf origin main
+Navigate to the project directory and build the project:
+```bash
+cd grafana-auth-reverse-proxy
+go build .
 ```
 
-## Integrate with your tools
+### Configuration
+Configure the application using environment variables or a configuration file. The main configurations include:
 
-- [ ] [Set up project integrations](https://gitlab.pnet.ch/zengeriv/grafana-auth-reverse-proxy/-/settings/integrations)
+- **Server Configuration**: Set endpoints, port, and other server-related settings.
+- **Token Configuration**: Configure token path and access token cookie name.
+- **OIDC Configuration**: Set up the OIDC redirect URL, client ID, client secret, issuer, and scopes.
+- **Proxy Configuration**: Define the target URL for the reverse proxy.
 
-## Collaborate with your team
+Refer to the struct field descriptions in the source code for detailed configuration options.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+To provide a comprehensive overview of all configuration options across different structs (`Server`, `TokenConfig`, `Oidc`, `Proxy`, `Grafana`), I will create tables for each struct that outline the available options, including their corresponding command-line flags, environment variables, descriptions, default values, and requirements.
 
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Start the application with the configured environment variables:
+```bash
+./grafana-auth-reverse-proxy
+```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Global Command Arguments
+<details> 
+<summary>Click to expand</summary>
+| Command Line Flag | Environment Variable | Description | Default Value | Required |
+| ----------------- | -------------------- | ----------- | ------------- | -------- |
+| (No direct flag for `Run`) | (No direct ENV for `Run`) | Start the Grafana Auth Reverse Proxy server with the specified configurations. | (Not applicable) | No |
+| --debug | GLOBALS_DEBUG | Set debug log level. | `false` | No |
+| --version | GLOBALS_VERSION | Show version information and exit. | (Not applicable) | No |
+</details>
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### `./grafana-auth-reverse-proxy run`
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+To run the Grafana Auth Reverse Proxy, use the `run` command with appropriate flags or environment variables.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+#### Synopsis
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```sh
+./grafana-auth-reverse-proxy run [flags]
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+#### Examples
 
-## License
-For open source projects, say how it is licensed.
+```sh
+# Start with default settings
+./grafana-auth-reverse-proxy run
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+# Start with a custom port and debug mode enabled
+./grafana-auth-reverse-proxy run --port=8085 --debug
+
+# Using environment variables
+export PORT=8085
+export DEBUG=true
+./grafana-auth-reverse-proxy run
+```
+
+### Command Arguments
+
+<details>
+<summary>Click to expand</summary>
+
+#### Server Struct
+
+| Command Line Flag | Environment Variable     | Description | Default Value | Required |
+| ----------------- |--------------------------| ----------- | ------------- | -------- |
+| --callback-endpoint | SERVER_CALLBACK_ENDPOINT | Endpoint for OIDC callback. | `/callback` | No |
+| --auth-endpoint | SERVER_AUTH_ENDPOINT            | Endpoint for initiating authentication. | `/auth` | No |
+| --port | SERVER_PORT                     | The port on which the server listens. | `8082` | No |
+| --secure | SERVER_SECURE                   | Flag to enable secure cookies. | `true` | No |
+| --root-url | SERVER_ROOT_URL                 | The root URL of the server. | `http://e1-zengeriv-alsu001:8082/` | No |
+| --sleep-before-redirect | SERVER_SLEEP_BEFORE_REDIRECT    | Delay before redirecting after authentication. | `1` (second) | No |
+
+#### TokenConfig Struct
+
+| Command Line Flag | Environment Variable | Description | Default Value | Required |
+| ----------------- | -------------------- | ----------- | ------------- | -------- |
+| --token-path | TOKEN_CONFIG_TOKEN_PATH | Path to the token in the authentication response. | `id_token` | No |
+| --access-token-cookie-name | TOKEN_CONFIG_ACCESS_TOKEN_COOKIE_NAME | Name of the cookie to store the access token. | `x-access-token` | No |
+
+#### Oidc Struct
+
+| Command Line Flag | Environment Variable | Description | Default Value | Required |
+| ----------------- | -------------------- | ----------- | ------------- | -------- |
+| --redirect-url | OIDC_REDIRECT_URL | URL to redirect after successful OIDC authentication. | `http://localhost:8082/callback` | No |
+| --client-id | OIDC_CLIENT_ID | Client ID for OIDC provider. | `grafana` | No |
+| --client-secret | OIDC_CLIENT_SECRET | Client Secret for OIDC provider. | `Z7J9KjZUI1LiUDMKKrNCLuewY7DWgDsU` | Yes |
+| --issuer | OIDC_ISSUER | URL of the OIDC issuer. | `http://e1-zengeriv-alsu001:8080/realms/master` | No |
+| --scopes | OIDC_SCOPES | Scopes requested from OIDC provider. | `openid,email,roles,profile` | No |
+| --jwks-url | OIDC_JWKS_URL | URL to the JWKS endpoint for token validation. | `http://e1-zengeriv-alsu001.pnet.ch:8080/realms/master/protocol/openid-connect/certs` | No |
+
+#### Proxy Struct
+
+| Command Line Flag | Environment Variable | Description | Default Value | Required |
+| ----------------- | -------------------- | ----------- | ------------- | -------- |
+| --target | PROXY_TARGET | Target URL for the reverse proxy. | `http://e1-zengeriv-alsu001:8081/` | No |
+
+#### Grafana Struct
+
+| Command Line Flag | Environment Variable | Description | Default Value | Required |
+| ----------------- | -------------------- | ----------- | ------------- | -------- |
+| --admin-user | PROXY_ADMIN_USER | Admin username for Grafana. | `admin` | No |
+| --org-attribute-path | PROXY_ORG_ATTRIBUTE_PATH | Path to the organization attribute in the token. | `groups` | No |
+| --mapping-config-file | PROXY_MAPPING_CONFIG_FILE | Path to the organization mapping configuration file. | `./testdata/mapping.yml` | No |
+| --role-attribute-path | PROXY_ROLE_ATTRIBUTE_PATH | JMESPath expression for role extraction from token. | `contains(groups[*], 'auth.strong') && 'Admin' || 'Editor' || 'Viewer'` | No |
+| --sync-login-or-email-claim-attribute | PROXY_SYNC_LOGIN_OR_EMAIL_CLAIM_ATTRIBUTE | Claim attribute for syncing login or email. | `preferred_username` | No |
+| --sync-email-claim-attribute | PROXY_SYNC_EMAIL_CLAIM_ATTRIBUTE | Claim attribute for syncing email. | `email` | No |
+| --sync-name-claim-attribute | PROXY_SYNC_NAME_CLAIM_ATTRIBUTE | Claim attribute for syncing name. | `name` | No |
+| --header-name-login-or-email | PROXY_HEADER_NAME_LOGIN_OR_EMAIL | Header name for passing login or email. | `X-WEBAUTH-USER` | No |
+| --header-name-name | PROXY_HEADER_NAME_NAME | Header name for passing the user's name. | `X-WEBAUTH-NAME` | No |
+| --header-name-email | PROXY_HEADER_NAME_EMAIL | Header name for passing the user's email. | `X-WEBAUTH-EMAIL` | No |
+| --header-name-role | PROXY_HEADER_NAME_ROLE | Header name for passing the user's role.|
+
+</details>
+
+## Development and Contribution
+Contributions are welcome! To contribute:
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b new-feature`
+3. Commit your changes: `git commit -am 'Add a new feature'`
+4. Push to the branch: `git push origin new-feature`
+5. Submit a pull request.
+
+### Code Structure
+- `cmd`: CLI command definitions and handling.
+- `config`: Configuration structs and loaders.
+- `grafana`: Grafana API integration and utilities.
+- `jwks`: JWT token parsing and JWKS handling.
+- `middleware`: Echo server middleware functions.
+- `proxy`: Reverse proxy setup and handling.
+- `utlis`: Utility functions for common operations.
+

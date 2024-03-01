@@ -1,8 +1,14 @@
+// Package auth manages the authentication mechanisms for the Grafana Auth Reverse Proxy.
+// It includes functions to set up authentication routes and handle the authentication logic.
+// This package interacts with OIDC providers, processes JWT tokens, and ensures that users are correctly authenticated.
 package auth
 
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
@@ -12,10 +18,14 @@ import (
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/utlis"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
-	"net/http"
-	"time"
 )
 
+// Setup configures the Echo server with routes and handlers for authentication and callback endpoints.
+// It defines the GET routes for the callback and authentication endpoints and attaches their respective handlers.
+// Parameters:
+// - e *echo.Echo: The Echo server instance to set up the routes on.
+// - cfg *config.Config: The configuration object containing settings like endpoints.
+// - l *zap.SugaredLogger: A logger for logging informational messages and errors.
 func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 	e.GET(cfg.CallbackEndpoint, func(c echo.Context) error {
 		return Callback(c, cfg, l)
@@ -26,6 +36,15 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 	})
 }
 
+// Callback handles the OIDC callback endpoint. It performs the token exchange, token verification,
+// and updates user information in Grafana based on the obtained token.
+// The function also sets a cookie with the access token and redirects to the root URL after a delay.
+// Parameters:
+// - ctx echo.Context: The Echo context containing request and response data.
+// - cfg *config.Config: The configuration object with OIDC and server settings.
+// - l *zap.SugaredLogger: A logger for logging errors and informational messages.
+// Returns:
+// - error: An error object if any issues occur during the callback handling.
 func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error {
 	c := context.Background()
 
@@ -94,7 +113,7 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 
 	err = grafana.UpdateUserMapping(rawIDToken, cfg)
 	if err != nil {
-		l.Errorw("Failed to update User Organsiation Mapping", "error", err)
+		l.Errorw("Failed to update User Organization Mapping", "error", err)
 	}
 
 	err = grafana.UpdateUserInfo(rawIDToken, cfg)
@@ -109,11 +128,21 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 
 	time.Sleep(time.Second * time.Duration(cfg.SleepBeforeRedirect))
 
-	return ctx.Redirect(302, cfg.RootUrl+"/login")
+	return ctx.Redirect(302, cfg.RootURL+"/login")
 }
 
+// Authenticate initiates the authentication process with the OIDC provider.
+// It redirects the user to the OIDC provider's authorization URL, or returns an authenticated response
+// if the user already has a valid token.
+// Parameters:
+// - ctx echo.Context: The Echo context containing request and response data.
+// - cfg *config.Config: The configuration object with OIDC and server settings.
+// - l *zap.SugaredLogger: A logger for logging errors and informational messages.
+// Returns:
+// - error: An error object if any issues occur during the authentication process.
 func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error {
 	l.Debug("Authenticating user")
+
 	c := context.Background()
 
 	provider, err := oidc.NewProvider(c, cfg.Issuer)
@@ -141,16 +170,19 @@ func Authenticate(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) er
 	if err != nil {
 		l.Debug("could not extract jwtTokenString", err)
 		http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)
+
 		return err
 	}
 
-	_, err = jwks.ParseJWTToken(jwtTokenString, cfg.JwksUrl)
+	_, err = jwks.ParseJWTToken(jwtTokenString, cfg.JwksURL)
 	if err != nil {
 		l.Debug("invalid token", err)
 		http.Redirect(ctx.Response(), ctx.Request(), oauth2Config.AuthCodeURL(state), http.StatusFound)
+
 		return err
 	}
 
 	l.Debug("is Authenitcated")
+
 	return ctx.JSON(200, "Is Authenticated")
 }

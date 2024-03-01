@@ -2,8 +2,9 @@ package grafana
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSearchJsonForAttr(t *testing.T) {
