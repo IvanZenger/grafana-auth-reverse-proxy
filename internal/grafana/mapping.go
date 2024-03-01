@@ -98,7 +98,7 @@ func resolveMappings(groups []string, mappings []config.OrgMapping) []config.Org
 	var resolvedMappings []config.OrgMapping
 
 	for _, mapping := range mappings {
-		if contains(groups, mapping.Group) {
+		if contains(groups, mapping.Group) || mapping.Group == "*" {
 			resolvedMappings = append(resolvedMappings, mapping)
 		}
 	}
