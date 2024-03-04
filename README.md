@@ -1,5 +1,5 @@
 
-<img align="right" width="50" height="50" src="docs/image.png">
+<img align="right" width="70" height="70" src="docs/image.png">
 
 # Grafana Auth Reverse Proxy
 
