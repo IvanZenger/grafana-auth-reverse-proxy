@@ -1,5 +1,8 @@
 
+<img align="right" width="50" height="50" src="docs/image.png">
+
 # Grafana Auth Reverse Proxy
+
 
 ## Overview
 Grafana Auth Reverse Proxy is a tool designed to enhance the authentication and authorization mechanisms of Grafana. It integrates OpenID Connect (OIDC) for authentication and manages user access and roles within Grafana based on JWT tokens (oAuth2). This proxy serves as a secure gateway, controlling access to Grafana dashboards and data.
