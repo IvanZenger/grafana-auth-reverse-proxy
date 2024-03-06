@@ -37,29 +37,37 @@ type JSONWebKeys struct {
 // - jwt.MapClaims: A map of claims extracted from the JWT token if the token is valid.
 // - error: An error object if any issues occur during token parsing or validation.
 func ParseJWTToken(tokenString, jwksURL string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
+	var token *jwt.Token
+	var err error
+	if len(jwksURL) != 0 {
+		token, err = jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
 
-		cert, err := getPemCertFromJWKS(jwksURL, token)
+			cert, err := getPemCertFromJWKS(jwksURL, token)
+			if err != nil {
+				return nil, err
+			}
+
+			publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
+			if err != nil {
+				return nil, err
+			}
+
+			return publicKey, nil
+		})
 		if err != nil {
 			return nil, err
 		}
-
-		publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
+	} else {
+		token, _, err = new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
 		if err != nil {
 			return nil, err
 		}
-
-		return publicKey, nil
-	})
-
-	if err != nil {
-		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		return claims, nil
 	}
 
