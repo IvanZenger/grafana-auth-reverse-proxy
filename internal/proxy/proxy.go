@@ -33,6 +33,37 @@ func Setup(e *echo.Echo, cfg *config.Config, l *zap.SugaredLogger) {
 
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
+	e.Any(path.Join(cfg.BasePath, "/logout"), func(c echo.Context) error {
+		l.Debugw("Proxying request", "method", c.Request().Method, "uri", c.Request().RequestURI)
+
+		req := c.Request()
+		res := c.Response()
+
+		req.URL.Host = targetURL.Host
+		req.URL.Scheme = targetURL.Scheme
+		req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
+		req.Host = targetURL.Host
+
+		proxy.ModifyResponse = func(r *http.Response) error {
+			r.Request.Host = r.Request.URL.Host
+			return nil
+		}
+
+		// Clear the access token cookie
+		http.SetCookie(res, &http.Cookie{
+			Name:     cfg.AccessTokenCookieName,
+			Value:    "",
+			MaxAge:   -1,
+			HttpOnly: true,
+			Secure:   true,
+			Path:     "/",
+		})
+
+		proxy.ServeHTTP(res, req)
+
+		return nil
+	})
+
 	e.Any(path.Join(cfg.BasePath, "/*"), func(c echo.Context) error {
 		l.Debugw("Proxying request", "method", c.Request().Method, "uri", c.Request().RequestURI)
 
