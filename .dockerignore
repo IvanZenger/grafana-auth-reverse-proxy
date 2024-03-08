@@ -1,0 +1,6 @@
+packaging/
+Dockerfile
+testdata/
+docs/
+.env
+.envrc
