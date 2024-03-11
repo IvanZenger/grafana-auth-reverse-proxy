@@ -59,7 +59,40 @@ func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.Org
 		}
 	}
 
+	// filter those orgs that are not in resolvedMappings, and remove the user from those orgs
+	removedOrgs := []int{}
+	for _, userOrg := range userOrgs {
+		if !hasAdditionalOrg(resolvedMappings, userOrg.OrgID) {
+			continue
+		}
+		removedOrgs = append(removedOrgs, userOrg.OrgID)
+	}
+
+	for _, orgId := range removedOrgs {
+		fmt.Printf("User name: %s, Remove user from org %d \n", loginOrEmail, orgId)
+		err := deleteOrgUser(userID, orgId, loginOrEmail, host, cfg)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+// hasAdditionalOrg checks if the user has additional organization in Grafana that are not in the resolved mappings.
+// Parameters:
+// - resolvedMappings: A slice of OrgMapping indicating the desired organization memberships and roles.
+// - userOrg: A OrgID representing the organization the user belongs to.
+// Returns:
+// - bool: A boolean indicating if the user has additional organizations.
+func hasAdditionalOrg(resolvedMappings []config.OrgMapping, userOrg int) bool {
+	for _, rm := range resolvedMappings {
+		if rm.OrgID == userOrg {
+			return false
+		}
+	}
+
+	return true
 }
 
 // getUserID retrieves the user ID from Grafana based on the user's login or email.
@@ -109,7 +142,8 @@ func createUser(loginOrEmail, host string, cfg *config.Config) (int, error) {
 		cfg.HeaderNameLoginOrEmail: loginOrEmail,
 	}
 
-	resp, err := Request(http.MethodGet, host, "/api/users", false, headers, cfg)
+	// https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/auth-proxy/#interacting-with-grafanas-authproxy-via-curl
+	resp, err := Request(http.MethodGet, host, "/api/user", false, headers, cfg)
 	if err != nil {
 		return 0, fmt.Errorf("error making request to Grafana: %w", err)
 	}
@@ -166,6 +200,23 @@ func updateOrgUser(userID, orgID int, role, host string, cfg *config.Config) err
 	}
 
 	resp, err := RequestWithBody(http.MethodPatch, host, uri, true, requestBody, cfg)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("grafana API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func deleteOrgUser(userID, orgID int, _, host string, cfg *config.Config) error {
+	uri := fmt.Sprintf("/api/orgs/%d/users/%d", orgID, userID)
+
+	resp, err := RequestWithBody(http.MethodDelete, host, uri, true, []byte{}, cfg)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
