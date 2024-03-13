@@ -45,6 +45,7 @@ type Server struct {
 type TokenConfig struct {
 	TokenPath             string `env:"TOKEN_PATH" help:"Path to the token in the authentication response. Defaults to 'id_token'." default:"id_token"`
 	AccessTokenCookieName string `env:"ACCESS_TOKEN_COOKIE_NAME" help:"Name of the cookie to store the access token. Defaults to 'x-access-token'." default:"x-access-token"`
+	AccessTokenMaxAge     int    `env:"ACCESS_TOKEN_MAX_AGE" help:"Max age (in seconds) of the access token. Defaults to '3600'." default:"3600"`
 }
 
 // Oidc struct
@@ -114,6 +115,7 @@ func (r *Run) Run(_ *Globals, l *zap.SugaredLogger) error {
 		SleepBeforeRedirect:            r.SleepBeforeRedirect,
 		BasePath:                       basePath,
 		AccessTokenCookieName:          r.AccessTokenCookieName,
+		AccessTokenMaxAge:              r.AccessTokenMaxAge,
 		OrgAttributePath:               r.OrgAttributePath,
 		MappingConfigFile:              r.MappingConfigFile,
 		RoleAttributePath:              r.RoleAttributePath,
