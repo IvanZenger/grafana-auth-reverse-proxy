@@ -1,7 +1,7 @@
 org_mapping:
-    - group: manage-account
-      org_id: 1
-      org_role: Viewer
-    - group: create-realm
-      org_id: 2
-      org_role: Editor
+- group: manage-account
+  org_id: 1
+  org_role: Viewer
+- group: create-realm
+  org_id: 2
+  org_role: Editor
