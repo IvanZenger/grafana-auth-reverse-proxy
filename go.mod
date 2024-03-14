@@ -3,9 +3,11 @@ module gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy
 go 1.21.5
 
 require (
+	github.com/MicahParks/keyfunc v1.9.0
 	github.com/alecthomas/kong v0.8.1
 	github.com/coreos/go-oidc/v3 v3.9.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/postfinance/flash v0.5.1
