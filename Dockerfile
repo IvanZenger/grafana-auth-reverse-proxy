@@ -1,9 +1,5 @@
 FROM golang:1.22-alpine
 
-ARG TZ=Asia/Taipei
-
-ENV TZ=${TZ}
-
 RUN apk add --no-cache tzdata
 
 # create a working directory inside the image
