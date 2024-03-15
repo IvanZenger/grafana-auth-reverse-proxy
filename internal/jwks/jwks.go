@@ -4,13 +4,15 @@
 package jwks
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/MicahParks/keyfunc"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // Jwks struct
@@ -37,29 +39,39 @@ type JSONWebKeys struct {
 // - jwt.MapClaims: A map of claims extracted from the JWT token if the token is valid.
 // - error: An error object if any issues occur during token parsing or validation.
 func ParseJWTToken(tokenString, jwksURL string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+	var token *jwt.Token
+	var err error
+	if len(jwksURL) != 0 {
+		// ref: https://stackoverflow.com/questions/61850992/jwt-validation-with-jwks-golang
+		ctx, cancel := context.WithCancel(context.Background())
+		options := keyfunc.Options{
+			Ctx: ctx,
+			RefreshErrorHandler: func(err error) {
+			},
+			RefreshInterval:   time.Hour,
+			RefreshRateLimit:  time.Minute * 5,
+			RefreshTimeout:    time.Second * 10,
+			RefreshUnknownKID: true,
 		}
 
-		cert, err := getPemCertFromJWKS(jwksURL, token)
+		jwks, err := keyfunc.Get(jwksURL, options)
+		defer cancel()
+		defer jwks.EndBackground()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create JWKS from resource at the given URL. %s", err.Error())
+		}
+		token, err = jwt.Parse(tokenString, jwks.Keyfunc)
 		if err != nil {
 			return nil, err
 		}
-
-		publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
+	} else {
+		token, _, err = new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
 		if err != nil {
 			return nil, err
 		}
-
-		return publicKey, nil
-	})
-
-	if err != nil {
-		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		return claims, nil
 	}
 

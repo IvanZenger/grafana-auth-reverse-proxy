@@ -54,7 +54,7 @@ type Oidc struct {
 	ClientSecret string   `env:"CLIENT_SECRET" help:"Client Secret for OIDC provider." default:"Z7J9KjZUI1LiUDMKKrNCLuewY7DWgDsU"`
 	Issuer       string   `env:"ISSUER" help:"URL of the OIDC issuer. Defaults to 'http://e1-zengeriv-alsu001:8080/realms/master'." default:"http://e1-zengeriv-alsu001:8080/realms/master"`
 	Scopes       []string `env:"SCOPES" help:"Scopes requested from OIDC provider. Defaults to 'openid,email,roles,profile'." default:"openid,email,roles,profile"`
-	JwksURL      string   `env:"JWKS_URL" help:"URL to the JWKS endpoint for token validation. Defaults to the specified URL." default:"http://e1-zengeriv-alsu001.pnet.ch:8080/realms/master/protocol/openid-connect/certs"`
+	JwksURL      string   `env:"JWKS_URL" help:"URL to the JWKS endpoint for token validation. Defaults to the specified URL." default:""`
 }
 
 // Proxy struct
