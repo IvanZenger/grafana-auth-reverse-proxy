@@ -32,6 +32,7 @@ type Config struct {
 	SleepBeforeRedirect            int
 	BasePath                       string
 	AccessTokenCookieName          string
+	AccessTokenMaxAge              int
 	OrgAttributePath               string
 	MappingConfigFile              string
 	RoleAttributePath              string
@@ -100,6 +101,7 @@ func (cfg *Config) LogConfig(l *zap.SugaredLogger) {
 	l.Infow("Token Configuration",
 		"TokenPath", cfg.TokenPath,
 		"AccessTokenCookieName", cfg.AccessTokenCookieName,
+		"AccessTokenMaxAge", cfg.AccessTokenMaxAge,
 	)
 	l.Infow("OIDC Configuration",
 		"ClientID", cfg.ClientID,

@@ -105,6 +105,7 @@ func Callback(ctx echo.Context, cfg *config.Config, l *zap.SugaredLogger) error 
 	cookie := &http.Cookie{
 		Name:     cfg.AccessTokenCookieName,
 		Value:    oauth2Token.AccessToken,
+		MaxAge:   cfg.AccessTokenMaxAge,
 		HttpOnly: true,
 		Secure:   cfg.Secure,
 		Path:     "/",
