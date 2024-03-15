@@ -6,6 +6,7 @@ package grafana
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/jwks"
@@ -42,8 +43,32 @@ func UpdateUserMapping(idToken string, cfg *config.Config) error {
 	}
 
 	resolvedMappings := resolveMappings(groups, mappings.OrgMappings)
+	SortResolvedMappings(resolvedMappings)
 
 	return updateUserOrgRoles(loginOrEmail, cfg.ProxyTarget, resolvedMappings, cfg)
+}
+
+func SortResolvedMappings(resolvedMappings []config.OrgMapping) {
+	sort.SliceStable(resolvedMappings, func(i, j int) bool {
+		rolePrecendenceI := MapGrafanaRolePrecedence(resolvedMappings[i].OrgRole)
+		rolePrecendenceJ := MapGrafanaRolePrecedence(resolvedMappings[j].OrgRole)
+		return resolvedMappings[i].OrgID < resolvedMappings[j].OrgID || (resolvedMappings[i].OrgID == resolvedMappings[j].OrgID && rolePrecendenceI < rolePrecendenceJ)
+	})
+}
+
+func MapGrafanaRolePrecedence(role string) int {
+	switch role {
+	case RoleGrafanaAdmin:
+		return 4
+	case RoleAdmin:
+		return 3
+	case RoleEditor:
+		return 2
+	case RoleViewer:
+		return 1
+	default:
+		return 1
+	}
 }
 
 // UpdateRole updates the user's role in Grafana based on their ID token.

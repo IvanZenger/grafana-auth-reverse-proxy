@@ -56,6 +56,11 @@ func updateUserOrgRoles(loginOrEmail, host string, resolvedMappings []config.Org
 			if err != nil {
 				return err
 			}
+			// sync user orgs after granting role
+			userOrgs, err = getUserOrgs(userID, host, cfg)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gitlab.pnet.ch/observability/grafana/grafana-auth-reverse-proxy/internal/config"
 )
 
 func TestSearchJsonForAttr(t *testing.T) {
@@ -43,4 +44,15 @@ func TestSearchJsonForAttr(t *testing.T) {
 		})
 
 	}
+}
+
+func TestSortedResolvedMappings_SameOrg(t *testing.T) {
+	resolvedMappings := []config.OrgMapping{{Group: "admin_group", OrgID: 1, OrgRole: "Admin"}, {Group: "editor_group", OrgID: 1, OrgRole: "Editor"}}
+	SortResolvedMappings(resolvedMappings)
+	require.Equal(t, resolvedMappings, []config.OrgMapping{{Group: "editor_group", OrgID: 1, OrgRole: "Editor"}, {Group: "admin_group", OrgID: 1, OrgRole: "Admin"}})
+}
+func TestSortedResolvedMappings_ComplexOrgs(t *testing.T) {
+	resolvedMappings := []config.OrgMapping{{Group: "admin_group1", OrgID: 1, OrgRole: "Admin"}, {Group: "editor_group1", OrgID: 1, OrgRole: "Editor"}, {Group: "admin_group6", OrgID: 6, OrgRole: "Admin"}, {Group: "editor_group6", OrgID: 6, OrgRole: "Editor"}}
+	SortResolvedMappings(resolvedMappings)
+	require.Equal(t, resolvedMappings, []config.OrgMapping{{Group: "editor_group1", OrgID: 1, OrgRole: "Editor"}, {Group: "admin_group1", OrgID: 1, OrgRole: "Admin"}, {Group: "editor_group6", OrgID: 6, OrgRole: "Editor"}, {Group: "admin_group6", OrgID: 6, OrgRole: "Admin"}})
 }
