@@ -82,8 +82,8 @@ To run the Grafana Auth Reverse Proxy, use the `run` command with appropriate fl
 ./grafana-auth-reverse-proxy run --port=8085 --debug
 
 # Using environment variables
-export PORT=8085
-export DEBUG=true
+export SERVER_PORT=8085
+export GLOBALS_DEBUG=true
 ./grafana-auth-reverse-proxy run
 ```
 
@@ -131,17 +131,17 @@ export DEBUG=true
 
 | Command Line Flag | Environment Variable | Description | Default Value | Required |
 | ----------------- | -------------------- | ----------- | ------------- | -------- |
-| --admin-user | PROXY_ADMIN_USER | Admin username for Grafana. | `admin` | No |
-| --org-attribute-path | PROXY_ORG_ATTRIBUTE_PATH | Path to the organization attribute in the token. | `groups` | No |
-| --mapping-config-file | PROXY_MAPPING_CONFIG_FILE | Path to the organization mapping configuration file. | `./testdata/mapping.yml` | No |
-| --role-attribute-path | PROXY_ROLE_ATTRIBUTE_PATH | JMESPath expression for role extraction from token. | `contains(groups[*], 'auth.strong') && 'Admin' || 'Editor' || 'Viewer'` | No |
-| --sync-login-or-email-claim-attribute | PROXY_SYNC_LOGIN_OR_EMAIL_CLAIM_ATTRIBUTE | Claim attribute for syncing login or email. | `preferred_username` | No |
-| --sync-email-claim-attribute | PROXY_SYNC_EMAIL_CLAIM_ATTRIBUTE | Claim attribute for syncing email. | `email` | No |
-| --sync-name-claim-attribute | PROXY_SYNC_NAME_CLAIM_ATTRIBUTE | Claim attribute for syncing name. | `name` | No |
-| --header-name-login-or-email | PROXY_HEADER_NAME_LOGIN_OR_EMAIL | Header name for passing login or email. | `X-WEBAUTH-USER` | No |
-| --header-name-name | PROXY_HEADER_NAME_NAME | Header name for passing the user's name. | `X-WEBAUTH-NAME` | No |
-| --header-name-email | PROXY_HEADER_NAME_EMAIL | Header name for passing the user's email. | `X-WEBAUTH-EMAIL` | No |
-| --header-name-role | PROXY_HEADER_NAME_ROLE | Header name for passing the user's role.|
+| --admin-user | GRAFANA_ADMIN_USER | Admin username for Grafana. | `admin` | No |
+| --org-attribute-path | GRAFANA_ORG_ATTRIBUTE_PATH | Path to the organization attribute in the token. | `groups` | No |
+| --mapping-config-file | GRAFANA_MAPPING_CONFIG_FILE | Path to the organization mapping configuration file. | `./testdata/mapping.yml` | No |
+| --role-attribute-path | GRAFANA_ROLE_ATTRIBUTE_PATH | JMESPath expression for role extraction from token. | `contains(groups[*], 'auth.strong') && 'Admin' || 'Editor' || 'Viewer'` | No |
+| --sync-login-or-email-claim-attribute | GRAFANA_SYNC_LOGIN_OR_EMAIL_CLAIM_ATTRIBUTE | Claim attribute for syncing login or email. | `preferred_username` | No |
+| --sync-email-claim-attribute | GRAFANA_SYNC_EMAIL_CLAIM_ATTRIBUTE | Claim attribute for syncing email. | `email` | No |
+| --sync-name-claim-attribute | GRAFANA_SYNC_NAME_CLAIM_ATTRIBUTE | Claim attribute for syncing name. | `name` | No |
+| --header-name-login-or-email | GRAFANA_HEADER_NAME_LOGIN_OR_EMAIL | Header name for passing login or email. | `X-WEBAUTH-USER` | No |
+| --header-name-name | GRAFANA_HEADER_NAME_NAME | Header name for passing the user's name. | `X-WEBAUTH-NAME` | No |
+| --header-name-email | GRAFANA_HEADER_NAME_EMAIL | Header name for passing the user's email. | `X-WEBAUTH-EMAIL` | No |
+| --header-name-role | GRAFANA_HEADER_NAME_ROLE | Header name for passing the user's role.|
 
 </details>
 
